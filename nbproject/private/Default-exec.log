@@ -1,8 +1,0 @@
-called: g++
-	/home/maxim/Documents/Programming/cpp/StegaPython
-	g++
-	-c
-	-o
-	Filer.o
-	Filer.cpp
-
