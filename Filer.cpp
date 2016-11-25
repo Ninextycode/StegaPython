@@ -1,58 +1,70 @@
 #include "TempBasedStegonography.h"
-ullong filer::Filer::readAndEncodeFile(std::string filename, uchar** data) {
-	std::ifstream in(filename, std::ios::binary | std::ios::ate);
-	if (!in.is_open()) {
-		return 0;
-	}
+using namespace filer;
+using namespace std;
 
+vector<uchar> Filer::readAndEncodeFile(string pathToFile) {     
+    vector<uchar> data;
+    
+    string filename = getProperFileName(pathToFile);
+    writeFileName(data, filename);
+    
+    ullong fileLength = getFileLength(pathToFile);
+    writeFileLength(data, fileLength);
+    
+    writeFile(data, pathToFile);
 
-	in.seekg(0, in.end);
-	ullong length = in.tellg();
-	in.seekg(0, in.beg);
-
-
-
-	std::string clearFilename;
-	int i = filename.length() - 1;
-	while (i >= 0 && filename.at(i) != '\\') {
-		clearFilename = filename.at(i--) + clearFilename;
-	}
-	*data = new uchar[(uint)(1 + filename.length() + 8) + length];
-
-
-	//Writing the size of type
-	*((*data)++) = (uchar)(clearFilename.length());
-
-	//Writing the type of file
-
-	for (uint i = 0; i < clearFilename.size(); i++) {
-		*((*data)++) = (uchar)clearFilename.at(i);
-	}
-
-	//Writing the size of file
-	for (int i = 0; i < 8; i++) {
-		*((*data)++) = (uchar)((length >> (8 * (7 - i))) & 0xff);
-		////		std::cout <<" " << i <<" work with: "<< (uint)((length >> (8 * (7 - i))) & 0xff) << "\n";
-	}
-
-
-
-	in.read((char*)*data, length);  //i do not reallu understnd behaviour seems no chane to *data position
-
-	*data -= (1 + clearFilename.length() + 8); //reset the pointer to the initial position;
-											   //for (int i = 0; i < (1 + clearFilename.length() + 8); i++) {
-											   //	std::cout << (uint)(*data)[i] << "\n";
-											   //}
-	in.close();
-	return 1 + clearFilename.length() + 8 + length;
+    return data;
 }
 
-void filer::Filer::writeEncodedFile(std::string resultDir, uchar** data) {
+string Filer::getProperFileName(string pathToFile){
+    string clearFilename;
+	int i = pathToFile.length() - 1;
+	while (i >= 0 && pathToFile.at(i) != '\\') {
+		clearFilename = pathToFile.at(i--) + clearFilename;
+	}
+    return clearFilename;
+}
+
+ullong Filer::getFileLength(string pathToFile) {
+    ifstream in(pathToFile, ifstream::ate | ifstream::binary);
+    if(!in.is_open()){
+        throw invalid_argument("Wrong filenamme");
+    }
+    ullong length = in.tellg(); 
+    in.close();
+    return length;
+}
+
+void Filer::writeFileName(vector<uchar>& data, string filename) {
+    data.push_back((uchar)filename.length());
+    for(auto c: filename){
+        data.push_back((uchar)c);
+    }
+}
+
+void Filer::writeFileLength(vector<uchar>& data, ullong length) {
+    for(int i = 0; i < 8; i++) {
+        data.push_back( (uchar)((0xff00000000000000 & length) >> (7*8)) );
+        length <<= 8;
+    }
+}
+
+void Filer::writeFile(vector<uchar>& data, string pathToFile) {
+    ifstream in(pathToFile, ios::binary);
+    if(!in.is_open()){
+        throw invalid_argument("Wrong filenamme");
+    }
+    istream_iterator<uchar> in_iter(in), end;    
+    data.insert(data.end(), in_iter, end);    
+    in.close();
+}
+
+void filer::Filer::writeEncodedFile(string resultDir, uchar** data) {
 
 	uchar filenameSize = *(*data)++;
 
 	//filename.append("_de.");
-	std::string filename = "";
+	string filename = "";
 	for (uchar i = 0; i < filenameSize; i++) {
 		filename += ((char)*((*data)++));
 	}
@@ -64,9 +76,9 @@ void filer::Filer::writeEncodedFile(std::string resultDir, uchar** data) {
 	}
 
 
-	std::ofstream out(resultDir + filename
+	ofstream out(resultDir + filename
 		//+ "." + format
-		, std::ios::binary);
+		, ios::binary);
 
 	out.write((char*)*data, filesize);
 
@@ -75,8 +87,8 @@ void filer::Filer::writeEncodedFile(std::string resultDir, uchar** data) {
 	*(data) -= (1 + filename.size() + 8);
 }
 
-void filer::Filer::writeFile(std::string filename, uchar* data, ullong length){
-    std::ofstream out(filename, std::ios::binary);
+void filer::Filer::writeFile(string filename, uchar* data, ullong length){
+    ofstream out(filename, ios::binary);
     out.write((char*)data, length);
     out.close();
 }

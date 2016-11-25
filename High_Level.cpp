@@ -12,7 +12,7 @@ returns -3 if file with name *filename* is too large to hide in temp.dat
 
 */
 int High_Level::hideFileInTemp(std::string filename) {
-    uchar** secretBuffer = new uchar*;
+ /*   uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
     ullong imageSize = low_level.readTemp(containerBuffer);
@@ -39,7 +39,7 @@ int High_Level::hideFileInTemp(std::string filename) {
     delete[] *secretBuffer;
     delete[] *containerBuffer;
     delete secretBuffer;
-    delete containerBuffer;
+    delete containerBuffer; */
     return 0;
 }
 
@@ -98,6 +98,7 @@ int stego::High_Level::takeFileFromJpgStructure(std::string imagenameStd, std::s
 }
 
 int stego::High_Level::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
+    /*
     uchar** secretBuffer = new uchar*;
     ullong fileSize = filer.readAndEncodeFile(filenameStd, secretBuffer);
     if (fileSize == 0) {
@@ -111,6 +112,7 @@ int stego::High_Level::hideFileToJpgStructure(std::string imagenameStd, std::str
     }
     delete[] *secretBuffer;
     delete secretBuffer;
+    */
     return 0;
 }
 
@@ -136,11 +138,12 @@ crypto::High_Level::~High_Level() {
 
 
 int crypto::High_Level::encryptFile(std::string filename, std::string password, std::string resultDir) {
+    /*
+    using namespace std;
+    vector<uchar> file = filer.readAndEncodeFile(filename);
 
-    uchar ** file = new uchar*;
 
-
-    ullong fileSize = filer.readAndEncodeFile(filename, file);
+    ullong fileSize = filer.readAndEncodeFile, file);
     if (fileSize == 0) {
         return -1;
     }	
@@ -187,7 +190,7 @@ int crypto::High_Level::encryptFile(std::string filename, std::string password, 
     
     delete[] encryptedFile;
     delete[] *file;
-    delete file;
+    delete file; */
     return 0;
 }
 
