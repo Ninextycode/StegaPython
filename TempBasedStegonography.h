@@ -15,14 +15,19 @@ namespace filer {
     class Filer {
     public:
         std::vector<uchar> readAndEncodeFile(std::string pathToFile);
-        void writeEncodedFile(std::string resultDir, uchar** data);
-        void writeFile(std::string filename,  uchar* data, ullong length);
+        void writeEncodedFile(const std::vector<uchar>& data, std::string directory);
+        void saveFile(const std::vector<uchar>& data, std::string filename);
     private:
+        std::string extractFileNameFromVector(const std::vector<uchar>& data);
+        int extractLengthFromVector(const std::vector<uchar>& data, int encodedFileNameLength);
+        
+        
         std::string getProperFileName(std::string pathToFile);
         ullong getFileLength(std::string pathToFile);
-        void writeFileName(std::vector<uchar>& data, std::string filename);
-        void writeFileLength(std::vector<uchar>& data, ullong length);
-        void writeFile(std::vector<uchar>& data, std::string pathToFile);
+        
+        void writeFileNameToVector(std::vector<uchar>& data, std::string filename);
+        void writeLengthToVector(std::vector<uchar>& data, ullong length);
+        void writeFileToVector(std::vector<uchar>& data, std::string pathToFile);
     };
 }
 
@@ -46,7 +51,7 @@ namespace stego {
     public:
 
         High_Level();
-
+        
         /*
         Hides file <i>filename</i> in temp.dat
         returns -1 if temp.dat is inacceptable
@@ -146,12 +151,44 @@ namespace crypto {
 
     class Sha512 {
     public:
-        int digest(uchar* data, uint length, uchar (&output)[64]);
+        std::vector<uchar> digest(std::vector<uchar>& data);
     
     private:
-        void rrot(uint& x, int n);
+        void preformComputations(std::vector<uchar>& data);
+        void digestBlock(std::vector<uchar>& data, int numberOfBlock);
+        void prepareMessageSchedule(std::vector<uchar>& data, int numberOfBlock);
+        void initialiseWorkingVariables();
+        void mix();
+        void computeIntermideateHashValues();
+        std::vector<uchar> formHash();
         
-        ulong h[8] {
+        ullong rotr(int n, ullong x);
+        ullong shr(int n, ullong x);
+        
+        ullong sigma0(ullong x);
+        ullong sigma1(ullong x);
+        
+        ullong SIGMA0(ullong x);
+        ullong SIGMA1(ullong x);
+        
+        ullong Ch(ullong x, ullong y, ullong z);
+        ullong Maj(ullong x, ullong y, ullong z);
+        
+        void pad(std::vector<uchar>& data);
+        void unpad(std::vector<uchar>& data);
+        
+        void append1followedBy0(std::vector<uchar>& data, int nBytes);
+        
+        void sizeToVector(std::vector<uchar>& data, ullong size);
+        
+        //it is possible to extract only 64 bit int, not 128, as sha512 specification suggests
+        ullong ullongFromVector(std::vector<uchar>& data, ullong start); 
+        
+        ullong a, b, c, d, e, f, g, h;
+        ullong H[8];
+        ullong w[80];
+        
+        static constexpr ullong H_static[8] {
             0x6a09e667f3bcc908,
             0xbb67ae8584caa73b,
             0x3c6ef372fe94f82b,
@@ -161,7 +198,8 @@ namespace crypto {
             0x1f83d9abfb41bd6b,
             0x5be0cd19137e2179
         };
-        static constexpr ulong k[80] {
+        
+        static constexpr ullong k[80] {
               0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 
               0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 0xd807aa98a3030242, 0x12835b0145706fbe, 
               0x243185be4ee4b28c, 0x550c7dc3d5ffb4e2, 0x72be5d74f27b896f, 0x80deb1fe3b1696b1, 0x9bdc06a725c71235, 

@@ -51,7 +51,7 @@ returns -2 if cannot read file from temp.dat
 returns 0 if OK
 */
 int High_Level::takeFileFromTemp(std::string resultDir) {
-    uchar** secretBuffer = new uchar*;
+    /* uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
     ullong containerSize = low_level.readTemp(containerBuffer);
@@ -74,7 +74,7 @@ int High_Level::takeFileFromTemp(std::string resultDir) {
     delete[] *secretBuffer;
     delete[] *containerBuffer;
     delete secretBuffer;
-    delete containerBuffer;
+    delete containerBuffer; */
     return 0;
 }
 
@@ -84,7 +84,7 @@ stego::High_Level::High_Level()
 }
 
 int stego::High_Level::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
-    uchar** secretBuffer = new uchar*;
+    /* uchar** secretBuffer = new uchar*;
     ullong secretSize = low_level.takeFileBufferFromJpgStructure(imagenameStd, secretBuffer);
     if (secretSize == 0) {
         delete secretBuffer;
@@ -93,7 +93,7 @@ int stego::High_Level::takeFileFromJpgStructure(std::string imagenameStd, std::s
     filer.writeEncodedFile(resultDirStd, secretBuffer);
 
     delete[] *secretBuffer;
-    delete secretBuffer;
+    delete secretBuffer; */
     return 0;
 }
 
@@ -195,7 +195,7 @@ int crypto::High_Level::encryptFile(std::string filename, std::string password, 
 }
 
 int crypto::High_Level::decryptFile(std::string filename, std::string password, std::string resultDir) {
-	std::ifstream in(filename, std::ios::in | std::ios::binary);
+	/* std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (!in.is_open())
             return -1;
 
@@ -233,7 +233,7 @@ int crypto::High_Level::decryptFile(std::string filename, std::string password, 
 
     delete[] encryptedFile;
     delete[] * file;
-    delete file;
+    delete file; */
     return 0;	
 }
 

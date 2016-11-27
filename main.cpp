@@ -14,6 +14,10 @@ char const* greet(){
 
 
 int main() {
+  
+}
+
+int test1(){
     using namespace filer;
     Filer f;
     vector<uchar> data = f.readAndEncodeFile("secret.txt");
@@ -22,4 +26,25 @@ int main() {
     }
     cout << "\n";
     return 0;
+}
+
+int test2(){
+    using namespace crypto;
+    Sha512 hash;
+    vector<uchar> data;
+    string s = "";
+    for(int i = 0; i < 1000000; i++) {
+        s += "a";
+    }
+    for(uchar c: s){
+        data.push_back(c);
+    }
+    auto h = hash.digest(data);
+    int counter = 0;
+    for(int c: h) {
+        if(counter++ % 4 == 0){
+            cout << "\n";
+        }
+        cout << boost::format("%02x") % c;
+    }
 }

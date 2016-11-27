@@ -2,7 +2,7 @@ headers = sha512.h TempBasedStegonography.h
 sources = Filer.cpp High_Level.cpp Low_Level.cpp\
  sha512.cpp Sha512.cpp main.cpp
 objects = Filer.o High_Level.o Low_Level.o sha512.o main.o Sha512.o
-CC = g++ -std=c++14 -fpic
+CC = g++ -std=c++14 -fpic -g
 output = stega.so
 exec = stega
 
