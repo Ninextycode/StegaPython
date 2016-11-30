@@ -18,7 +18,7 @@ int main() {
 }
 
 int test1(){
-    using namespace filer;
+    using namespace fileworks;
     Filer f;
     vector<uchar> data = f.readAndEncodeFile("secret.txt");
     for(int i = 0; i < data.size(); i++) {

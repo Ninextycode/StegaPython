@@ -1,235 +1,12 @@
 #include "TempBasedStegonography.h"
 
-using namespace stego;
-
-ullong stego::Low_Level::readTemp(uchar ** data) {
-	std::ifstream in("temp.dat" , std::ios::in | std::ios::binary | std::ios::ate);
-	ullong size = 0;
-	if (!in.is_open()) return 0;
-
-	in.seekg(0, std::ios::end);
-	size = in.tellg();
-	in.seekg(0, std::ios::beg);
-	*data = new uchar[size];
-	in.read((char*)*data, size);
-	in.close();
-	return size;
-}
-
-
-
-void stego::Low_Level::writeTemp(uchar ** data) {
-	std::ofstream out("temp.dat", std::ios::binary);
-	int width = 0;
-	for (int i = 0; i < 4; i++) {
-		width |= (((int)*((*data)++)) << ((3 - i) * 8));
-	}
-	int height = 0;
-	for (int i = 0; i < 4; i++) {
-		height |= (((int)*((*data)++)) << ((3 - i) * 8));
-	}
-	ullong containerSize = (uint)width*height * 3;
-
-	(*data) -= 8;
-	out.write((char*)*data, (containerSize+8));
-	out.close();
-}
-
-ullong stego::Low_Level::takeFileBufferFromJpgStructure(std::string imagename, uchar ** data) {
-
-	std::ifstream in(imagename, std::ios::in | std::ios::binary);
-	in.seekg(0, std::ios::end);
-	ullong size = in.tellg();
-	in.seekg(0, std::ios::beg);
-
-	uchar last, now;
-	in >> last;
-	in >> now;
-	ullong i = 0;
-	ullong dataSize = 0;
-	bool readFlag = false;
-	for (; !in.eof(); last = now, in >> now) {
-		if (last == 0xff && now == 0xc7) {
-			if (!readFlag) {
-				readFlag = true;
-				dataSize = 0;
-				uchar buffer;
-				for (int i = 0; i < 8; i++) {
-					in >> buffer;
-					dataSize *= 256;
-					dataSize += ( buffer) ;
-				}
-				*data = new uchar[dataSize];
-				in.read((char*)*data, dataSize);
-				break;
-
-			} 
-		}
-		i++;
-	}
-	
-	in.close();
-	return dataSize;
-}
-
-int stego::Low_Level::hideFileBufferInJpgStructure(std::string imagename, uchar ** data, ullong size) {
-	std::ifstream in(imagename, std::ios::binary);
-
-	uchar last, now;
-	in >> last;
-	in >> now;
-	for (; !in.eof(); last = now, in >> now) {
-		if (last == 0xff && now == 0xc7) {
-			return 0;
-		}
-	}
-
-	in.close();
-
-	std::ofstream out(imagename, std::ios::binary | std::ios_base::app);
-	if (!out.is_open()) {
-		return 0;
-	}
-
-	uchar buffer = 0xff;
-	out.write((char*)&buffer, 1);
-	buffer = 0xc7;
-	out.write((char*)&buffer, 1);
-
-
-	for (int i = 0; i < 8; i++) {
-		buffer = (size >> ((7 - i) * 8)) & 0xff;
-		out.write((char*)&buffer, 1);
-	}
-	out.write((char *)(*data), size);
-
-	out.close();
-	return size;
-}
-
-uchar Low_Level::read8LSB(uchar* data) {
-	uchar secret = 0;
-	for (int i = 0; i < 8; i++) {
-		secret |= (data[i] & 0x01) << (7 - i);
-	}
-	return secret;
-}
-
-/*
-secret and container are the char arrays that were gotten from readFile and readImage
-ONLY in this case the function works  properly
-*/
-int Low_Level::keylessLSB(uchar** container, uchar** secret) {
-
-	uchar formatSize = *(*secret)++;
-	*secret += formatSize;
-	uint filesize = 0;
-	for (int i = 0; i < 8; i++) {
-		filesize |= (((uint)*((*secret)++)) << ((7 - i) * 8));
-	}
-	uint secretSize = 1 + 8 + filesize + formatSize;
-
-	//We determine the size of the container to thech the possibility of hiding a secret in it
-	int width = 0;
-	for (int i = 0; i < 4; i++) {
-		width |= (((int)*((*container)++)) << ((3 - i) * 8));
-	}
-	int height = 0;
-	for (int i = 0; i < 4; i++) {
-		height |= (((int)*((*container)++)) << ((3 - i) * 8));
-	}
-	ullong containerSize = (uint)width*height * 3;
-
-	// secret's pointer is reseted to the position before header, because header should also be hided
-	// container's is not, because we dont hide in the bits that store the size information
-	*secret -= 1 + 8 + formatSize;
-
-
-
-	//We determine the size of the container to thech the possibility of hiding a secret in it
-	if ((secretSize * 8) > containerSize) 
-		return -1;
-
-	for (uint i = 0; i < secretSize; i++) {
-		for (int j = 0; j < 8; j++) {
-			*(*container)++ = (**container & 0xfe) | (0x01 & (**secret >> (7 - j)));
-		}
-		(*secret)++;
-	}
-	*secret -= secretSize;
-	*container -= (secretSize * 8 + 8);
-
-	int a = 0;
-	return 0;
-}
-
-/*
-container is a char array gotten fron imageReader, where image contained a secret in a format returned from readFile
-secret is a pointer to  an empty char array
-ONLY in this case the function works  properly
-*/
-ullong Low_Level::de_keylessLSB(uchar** container, uchar** secret) {
-
-	int carate = 0;
-	carate += 8; //avoid reading size information
-	uchar filenameSize = read8LSB(&(*container)[carate]);
-	carate += 8;
-
-	std::string filename;
-
-	for (int i = 0; i < filenameSize; i++) {
-		uchar digit = read8LSB(&(*container)[carate]);
-
-		filename += read8LSB(&(*container)[carate]);
-		carate += 8;
-	}
-
-	ullong fileSize = 0;
-	
-	for (int i = 0; i < 8; i++) {
-		fileSize |= (uint)(read8LSB(&(*container)[carate]) << ((7 - i) * 8));
-		carate += 8;
-	}
-
-	if (fileSize > 1E9) return 0;
-		*secret = new uchar[1 + filenameSize + 8 + fileSize];
-	
-	*(*secret)++ = filenameSize;
-	
-	for (int i = 0; i < filenameSize; i++) {
-		*(*secret)++ = filename.at(i);
-	}
-	
-	for (int i = 0; i < 8; i++) {
-		*(*secret)++ = (uchar)((fileSize >> (8 * (7 - i))));
-	}
-	
-	for (uint i = 0; i < fileSize; i++) {
-		*(*secret)++ = read8LSB(&(*container)[carate]);
-		carate += 8;
-	}
-
-	*secret -= (1 + filenameSize + 8 + fileSize);
-	return (1 + filenameSize + 8 + fileSize);
-}
-
-
-
-
-
-
-
-
-
-
-//HERE GOES CRYPTO
-
-void crypto::Low_Level::encryptAES(uchar(&input)[16], uchar(&key)[32]) {
+using namespace crypto;
+using namespace std;
+        
+void LowLevelCrypto::encryptAES(uchar(&input)[16], uchar(&key)[32]) {
 	uchar dataMatrix[4][4];
 	uchar w_key[240];
 	keyExpantion(key, w_key);
-	//std::cout << rijndael[2][2] << "____";
-
 
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
@@ -253,7 +30,7 @@ void crypto::Low_Level::encryptAES(uchar(&input)[16], uchar(&key)[32]) {
 	}
 }
 
-void crypto::Low_Level::decryptAES(uchar(&input)[16], uchar(&key)[32]) {
+void LowLevelCrypto::decryptAES(uchar(&input)[16], uchar(&key)[32]) {
 	uchar dataMatrix[4][4];
 	uchar w_key[240];
 	keyExpantion(key, w_key);
@@ -287,7 +64,7 @@ void crypto::Low_Level::decryptAES(uchar(&input)[16], uchar(&key)[32]) {
 	}
 }
 
-void crypto::Low_Level::keyScheduleCore(uchar(&data)[4], int i) {
+void LowLevelCrypto::keyScheduleCore(uchar(&data)[4], int i) {
 	leftRotation(data);
 	subWord(data);
 
@@ -295,13 +72,13 @@ void crypto::Low_Level::keyScheduleCore(uchar(&data)[4], int i) {
 
 }
 
-void crypto::Low_Level::subWord(uchar(&data)[4]) {
+void LowLevelCrypto::subWord(uchar(&data)[4]) {
 	for (int j = 0; j < 4; j++) {
 		data[j] = s_box[data[j]];
 	}
 }
 
-void crypto::Low_Level::invShiftRows(uchar(&data)[4][4]) {
+void LowLevelCrypto::invShiftRows(uchar(&data)[4][4]) {
 	uchar result[4];
 	for (int i = 1; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -313,11 +90,11 @@ void crypto::Low_Level::invShiftRows(uchar(&data)[4][4]) {
 	}
 }
 
-void crypto::Low_Level::invMixCols(uchar(&data)[4][4]) {
+void LowLevelCrypto::invMixCols(uchar(&data)[4][4]) {
 	multiply4(inverce_rijndael, data);
 }
 
-void crypto::Low_Level::invSubData(uchar(&data)[4][4]) {
+void LowLevelCrypto::invSubData(uchar(&data)[4][4]) {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			data[i][j] = inverce_s_box[data[i][j]];
@@ -325,13 +102,13 @@ void crypto::Low_Level::invSubData(uchar(&data)[4][4]) {
 	}
 }
 
-void crypto::Low_Level::leftRotation(uchar(&data)[4]) {
+void LowLevelCrypto::leftRotation(uchar(&data)[4]) {
 	for (int k = 0; k < 3; k++){
-		std::swap(data[k], data[k + 1]);
+		swap(data[k], data[k + 1]);
 	}
 }
 
-void crypto::Low_Level::shiftRows(uchar(&data)[4][4]) {
+void LowLevelCrypto::shiftRows(uchar(&data)[4][4]) {
 	uchar result[4];
 	for (int i = 1; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -343,11 +120,11 @@ void crypto::Low_Level::shiftRows(uchar(&data)[4][4]) {
 	}
 }
 
-void crypto::Low_Level::mixCols(uchar(&data)[4][4]) {
+void LowLevelCrypto::mixCols(uchar(&data)[4][4]) {
 	multiply4(rijndael, data);
 }
 
-void crypto::Low_Level::subData(uchar(&data)[4][4]) {
+void LowLevelCrypto::subData(uchar(&data)[4][4]) {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			data[i][j] = s_box[data[i][j]];
@@ -355,7 +132,7 @@ void crypto::Low_Level::subData(uchar(&data)[4][4]) {
 	}
 }
 
-void crypto::Low_Level::addRoundKey(uchar(&key)[240], uchar(&data)[4][4], int round) {
+void LowLevelCrypto::addRoundKey(uchar(&key)[240], uchar(&data)[4][4], int round) {
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
 			data[r][c] ^= key[round*16 + r+c*4];
@@ -363,7 +140,7 @@ void crypto::Low_Level::addRoundKey(uchar(&key)[240], uchar(&data)[4][4], int ro
 	}
 }
 
-void crypto::Low_Level::multiply4(uchar(&pred)[4][4], uchar(&data)[4][4]) {
+void LowLevelCrypto::multiply4(uchar(&pred)[4][4], uchar(&data)[4][4]) {
 	uchar result[4][4];
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
@@ -381,7 +158,7 @@ void crypto::Low_Level::multiply4(uchar(&pred)[4][4], uchar(&data)[4][4]) {
 	}
 }
 
-void crypto::Low_Level::keyExpantion(uchar(&key)[32], uchar(&w_key)[240])
+void LowLevelCrypto::keyExpantion(uchar(&key)[32], uchar(&w_key)[240])
 {
 	for (int k = 0; k < 32 ; k++) {
 		w_key[k] = key[k];
@@ -407,7 +184,7 @@ void crypto::Low_Level::keyExpantion(uchar(&key)[32], uchar(&w_key)[240])
 	}
 }
 
-uchar crypto::Low_Level::multiplyInG256(uchar a, uchar b) {
+uchar LowLevelCrypto::multiplyInG256(uchar a, uchar b) {
 	uchar p = 0; /* the product of the multiplication */
 	while (b) {
 		if (b & 1) /* if b is odd, then add the corresponding a to p (final product = sum of all a's corresponding to odd b's) */
@@ -424,7 +201,7 @@ uchar crypto::Low_Level::multiplyInG256(uchar a, uchar b) {
 
 
 
-uchar crypto::Low_Level::s_box[256] = {
+uchar LowLevelCrypto::s_box[256] = {
 	0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7 ,0xab, 0x76,
 	0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
 	0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -443,7 +220,7 @@ uchar crypto::Low_Level::s_box[256] = {
 	0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-uchar crypto::Low_Level::inverce_s_box[256] =
+uchar LowLevelCrypto::inverce_s_box[256] =
 {
 	0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
 	0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
@@ -463,7 +240,7 @@ uchar crypto::Low_Level::inverce_s_box[256] =
 	0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
 
-uchar crypto::Low_Level::rcon[256] = {
+uchar LowLevelCrypto::rcon[256] = {
 	0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
 	0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
 	0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
@@ -483,14 +260,14 @@ uchar crypto::Low_Level::rcon[256] = {
 };
 
 
-uchar crypto::Low_Level::rijndael[4][4] = {
+uchar LowLevelCrypto::rijndael[4][4] = {
 	{ 0x02, 0x03, 0x01, 0x01 },
 	{ 0x01, 0x02, 0x03, 0x01 },
 	{ 0x01, 0x01, 0x02, 0x03 },
 	{ 0x03, 0x01, 0x01, 0x02 }
 };
 
-uchar crypto::Low_Level::inverce_rijndael[4][4] = {
+uchar LowLevelCrypto::inverce_rijndael[4][4] = {
 	{ 0x0e, 0x0b, 0x0d, 0x09 },
 	{ 0x09, 0x0e, 0x0b, 0x0d },
 	{ 0x0d, 0x09, 0x0e, 0x0b },

@@ -11,15 +11,26 @@ typedef unsigned char uchar;
 typedef unsigned int  uint;
 typedef unsigned long long  ullong;
 
-namespace filer {
+namespace subroutines {
+    class VectorSubroutines {
+    public:
+        std::vector<uchar> vectorFromString(std::string);
+        std::string stringFromVector(std::vector<uchar>& data, ullong begin, ullong end);
+        void appendUllong(std::vector<uchar>& data, ullong x);
+        ullong getUllong(std::vector<uchar>& data, ullong position);
+        void truncateToSile(std::vector<uchar>& data, ullong desiredSize);
+    };
+}
+
+namespace fileworks {
     class Filer {
     public:
-        std::vector<uchar> readAndEncodeFile(std::string pathToFile);
+        std::vector<uchar> readAndEncodeFile(std::string pathToFile); //encodes file name and size to vector
+        std::vector<uchar> readFile(std::string pathToFile); //gets only the binary representation of a file
         void writeEncodedFile(const std::vector<uchar>& data, std::string directory);
-        void saveFile(const std::vector<uchar>& data, std::string filename);
+        void writeFile(const std::vector<uchar>& data, std::string filename);
     private:
         std::string extractFileNameFromVector(const std::vector<uchar>& data);
-        int extractLengthFromVector(const std::vector<uchar>& data, int encodedFileNameLength);
         
         
         std::string getProperFileName(std::string pathToFile);
@@ -32,17 +43,16 @@ namespace filer {
 }
 
 namespace stego {
-    class Low_Level {
+    class LowLevelStego {
     public:
-        ullong readTemp(uchar** data);
+        std::vector<uchar> readTemp();
         void writeTemp(uchar** data);
         int keylessLSB(uchar ** container, uchar ** secret);
         ullong de_keylessLSB(uchar ** container, uchar ** secret);
         ullong takeFileBufferFromJpgStructure(std::string imagename, uchar** data);
         int hideFileBufferInJpgStructure(std::string imagename, uchar** data, ullong size);
-        Low_Level();
-        Low_Level(int a) {};
     private:
+        std::string tempFileName = "temp.dat";
         uchar read8LSB(uchar* data);
         std::string directory;
     };
@@ -85,20 +95,17 @@ namespace stego {
 
         ~High_Level();
     private:
-            Low_Level low_level;
-            filer::Filer filer;
+            LowLevelStego low_level;
+            fileworks::Filer filer;
     };
 }
 
 namespace crypto {
-    class Low_Level {
+   
+    class LowLevelCrypto {
     public:
-        void encryptAES(uchar(&data)[16], uchar(&key)[32]);
-        void decryptAES(uchar(&data)[16], uchar(&key)[32]);
-
-        Low_Level() {
-                //nothing to do here
-        };
+        std::vector<uchar> encryptAES(std::vector<uchar>& data, std::vector<uchar>& password);
+        std::vector<uchar> decryptAES(std::vector<uchar>& data, std::vector<uchar>& password);
     private:
         void keyScheduleCore(uchar(&data)[4], int i);
         void leftRotation(uchar(&data)[4]);
@@ -133,20 +140,27 @@ namespace crypto {
 
     class High_Level {
     public:
-        High_Level();
-
-        /*
-        returns -1 if cannot open file
-        */
-        int encryptFile(std::string filename, std::string password, std::string resultDir);
-        int decryptFile(std::string filename, std::string password, std::string resultDir);
-
-        ~High_Level();
+        void encryptFile(std::string filename, std::string password, std::string resultDir);
+        void decryptFile(std::string filename, std::string password, std::string resultDir);
 
     private:
-        crypto::Low_Level low_level;
-        filer::Filer filer;
-        void xorFirstWithSecond(uchar* a, uchar* b, ullong length);
+        void appendHashToVector(std::vector<uchar>& data);
+        void checkHashAtTheEnd(std::vector<uchar>& data);
+        
+        std::vector<uchar> encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+                std::vector<uchar>& password, std::vector<uchar>& IV);
+        
+        std::vector<uchar> decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+                std::vector<uchar>& password);
+        
+        void padPKCS7(std::vector<uchar>&  data);
+        void unpadPKCS7(std::vector<uchar>& data);
+        
+        std::vector<uchar> xorFirstWithSecond(std::vector<uchar>& a, std::vector<uchar>& b);
+        
+        
+        
+        std::string postfixForEncryptedFiles = "_crypt.dat";
     };
 
     class Sha512 {
@@ -159,7 +173,7 @@ namespace crypto {
         void prepareMessageSchedule(std::vector<uchar>& data, int numberOfBlock);
         void initialiseWorkingVariables();
         void mix();
-        void computeIntermideateHashValues();
+        void computeIntermediateHashValues();
         std::vector<uchar> formHash();
         
         ullong rotr(int n, ullong x);
@@ -180,9 +194,6 @@ namespace crypto {
         void append1followedBy0(std::vector<uchar>& data, int nBytes);
         
         void sizeToVector(std::vector<uchar>& data, ullong size);
-        
-        //it is possible to extract only 64 bit int, not 128, as sha512 specification suggests
-        ullong ullongFromVector(std::vector<uchar>& data, ullong start); 
         
         ullong a, b, c, d, e, f, g, h;
         ullong H[8];

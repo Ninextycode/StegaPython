@@ -1,6 +1,12 @@
 #include "TempBasedStegonography.h"
-using namespace filer;
+using namespace fileworks;
 using namespace std;
+
+vector<uchar> Filer::readFile(string pathToFile) {
+    vector<uchar> data; 
+    writeFileToVector(data, pathToFile);
+    return data;
+}
 
 vector<uchar> Filer::readAndEncodeFile(string pathToFile) {     
     vector<uchar> data;
@@ -59,7 +65,7 @@ void Filer::writeFileToVector(std::vector<uchar>& data, std::string pathToFile){
     in.close();
 }
 
-void Filer::saveFile(const vector<uchar>& data, string pathToFile) {
+void Filer::writeFile(const vector<uchar>& data, string pathToFile) {
     ofstream out(pathToFile, ios::binary);
     for(auto byte : data) {
         out << byte;
@@ -67,24 +73,19 @@ void Filer::saveFile(const vector<uchar>& data, string pathToFile) {
     out.close();
 }
 
-void filer::Filer::writeEncodedFile(const vector<uchar>& data, string directory) {
-    int index = 0;
+void Filer::writeEncodedFile(const vector<uchar>& data, string directory) {
+    using namespace subroutines;
+    VectorSubroutines vs;
+    
 	uchar filenameSize = data[index++];
     
-	string filename = "";
-	for (uchar i = 0; i < filenameSize;) {
-		filename += data[index++];
-	}
+    ullong filenameEnd = 1 + filenameSize;
+	string filename = vs.stringFromVector(data, 1, );
+	ullong fileSize = vs.getUllong(data, filenameEnd);
 
-
-	ullong filesize = 0;
-	for (int i = 0; i < 8; i++) {
-		filesize |= (((ullong)data[index++]) << ((7 - i) * 8));
-	}
-
-    
+    int index = 1 + filenameSize + 8; 
 	ofstream out(directory + filename, ios::binary);
-	while (index < data.size()){
+	while (index < fileSize){
         out << data[index++];
     }
 	out.close();

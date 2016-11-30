@@ -51,43 +51,42 @@ void Sha512::append1followedBy0(vector<uchar>& data, int nBytes) {
 }
 
 void Sha512::unpad(vector<uchar>& data){
-    int desiredLength = ullongFromVector(data, data.size() - 8) / 8;
+    //it is possible to extract only 64 bit int, not 128, as sha512 specification suggests
+    using namespace subroutines;
+    VectorSubroutines vs;
+    
+    ullong desiredLength = vs.getUllong(data, data.size() - 8);
+    ullong desiredLength = desiredLength / 8;
     auto padBegin = data.begin();
     advance(padBegin, desiredLength);
     data.erase(padBegin, data.end());
 }
-
-
-ullong Sha512::ullongFromVector(vector<uchar>& data, ullong start){
-    ullong x = 0;
-    for (int i = 0; i < 8; i++) {
-		x |= ((ullong)data[start++]) << ((7 - i) * 8);
-	}
-    return x;
-}
-
 void Sha512::sizeToVector(vector<uchar>& data, ullong x){
+    using namespace subroutines;
+    VectorSubroutines vs;
+    
+    //add 8 empty bits, because according to sha512 specification, size should occupy 128, not 64(ullong length) bits
     for(int i = 0; i < 8; i++) {
-        data.push_back(0x00);
+        data.push_back(0x00); 
     }
-    for(int i = 0; i < 8; i++) {
-        data.push_back( (uchar)((0xff00000000000000 & x) >> (7*8)) );
-        x <<= 8;
-    }
+    vs.appendUllong(x);
 }
 
 void Sha512::digestBlock(std::vector<uchar>& data, int numberOfBlock){
     prepareMessageSchedule(data, numberOfBlock);
     initialiseWorkingVariables();
     mix();
-    computeIntermideateHashValues();
+    computeIntermediateHashValues();
 }
 
 void Sha512::prepareMessageSchedule(std::vector<uchar>& data, int numberOfBlock){
+    using namespace subroutines;
+    VectorSubroutines vs;
+    
     ullong blockStartIndex = numberOfBlock * 16 * 8;
     
     for(int t = 0; t < 16; t++) {
-        w[t] = ullongFromVector(data, blockStartIndex + t*8);
+        w[t] = vs.getUllong(data, blockStartIndex + t*8);
     }
     for(int t = 16; t < 80; t++) {
         w[t] = sigma1(w[t-2]) + w[t-7] + sigma0(w[t-15]) + w[t-16];
@@ -120,7 +119,7 @@ void Sha512::mix() {
     }
 }
 
-void Sha512::computeIntermideateHashValues() {
+void Sha512::computeIntermediateHashValues() {
     H[0] = a + H[0];
     H[1] = b + H[1];
     H[2] = c + H[2];
