@@ -5,20 +5,24 @@
 
 #include <boost/format.hpp>
 
-#include "sha512.h"
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE main
+#include  <boost/test/unit_test.hpp>
+
 using namespace std;
 
-char const* greet(){
-    return "hello world";
+ 
+int add(int i, int j){
+    return i + j;
+}
+ 
+BOOST_AUTO_TEST_CASE(universeInOrder){
+    BOOST_CHECK(add(2, 2) == 4);
 }
 
-
-int main() {
-  
-}
 
 int test1(){
-    using namespace fileworks;
+    using namespace stcr;
     Filer f;
     vector<uchar> data = f.readAndEncodeFile("secret.txt");
     for(int i = 0; i < data.size(); i++) {
@@ -29,7 +33,7 @@ int test1(){
 }
 
 int test2(){
-    using namespace crypto;
+    using namespace stcr;
     Sha512 hash;
     vector<uchar> data;
     string s = "";
