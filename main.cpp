@@ -5,21 +5,13 @@
 
 #include <boost/format.hpp>
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE main
-#include  <boost/test/unit_test.hpp>
 
 using namespace std;
 
  
-int add(int i, int j){
-    return i + j;
+int main() {
+    test1();
 }
- 
-BOOST_AUTO_TEST_CASE(universeInOrder){
-    BOOST_CHECK(add(2, 2) == 4);
-}
-
 
 int test1(){
     using namespace stcr;
