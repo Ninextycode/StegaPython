@@ -1,7 +1,7 @@
 #include "TempBasedStegonography.h"
 #include <boost/format.hpp>
 
-using namespace crypto;
+using namespace stcr;
 using namespace std;
 
 constexpr ullong Sha512::H_static[];
@@ -52,24 +52,22 @@ void Sha512::append1followedBy0(vector<uchar>& data, int nBytes) {
 
 void Sha512::unpad(vector<uchar>& data){
     //it is possible to extract only 64 bit int, not 128, as sha512 specification suggests
-    using namespace subroutines;
     VectorSubroutines vs;
     
     ullong desiredLength = vs.getUllong(data, data.size() - 8);
-    ullong desiredLength = desiredLength / 8;
+    desiredLength = desiredLength / 8;
     auto padBegin = data.begin();
     advance(padBegin, desiredLength);
     data.erase(padBegin, data.end());
 }
 void Sha512::sizeToVector(vector<uchar>& data, ullong x){
-    using namespace subroutines;
     VectorSubroutines vs;
     
     //add 8 empty bits, because according to sha512 specification, size should occupy 128, not 64(ullong length) bits
     for(int i = 0; i < 8; i++) {
         data.push_back(0x00); 
     }
-    vs.appendUllong(x);
+    vs.appendUllong(data, x);
 }
 
 void Sha512::digestBlock(std::vector<uchar>& data, int numberOfBlock){
@@ -80,7 +78,6 @@ void Sha512::digestBlock(std::vector<uchar>& data, int numberOfBlock){
 }
 
 void Sha512::prepareMessageSchedule(std::vector<uchar>& data, int numberOfBlock){
-    using namespace subroutines;
     VectorSubroutines vs;
     
     ullong blockStartIndex = numberOfBlock * 16 * 8;

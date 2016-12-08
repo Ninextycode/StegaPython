@@ -1,5 +1,5 @@
 #include "TempBasedStegonography.h"
-using namespace fileworks;
+using namespace stcr;
 using namespace std;
 
 vector<uchar> Filer::readFile(string pathToFile) {
@@ -74,13 +74,12 @@ void Filer::writeFile(const vector<uchar>& data, string pathToFile) {
 }
 
 void Filer::writeEncodedFile(const vector<uchar>& data, string directory) {
-    using namespace subroutines;
     VectorSubroutines vs;
-    
-	uchar filenameSize = data[index++];
+ 
+	uchar filenameSize = data[0];
     
     ullong filenameEnd = 1 + filenameSize;
-	string filename = vs.stringFromVector(data, 1, );
+	string filename = vs.stringFromVector(data, (ullong)1, filenameEnd);
 	ullong fileSize = vs.getUllong(data, filenameEnd);
 
     int index = 1 + filenameSize + 8; 

@@ -1,16 +1,15 @@
 #include "TempBasedStegonography.h"
 
-using namespace stego;
-using namespace fileworks;
+using namespace stcr;
 using namespace std;
 
-vector<uchar> stego::LowLevelStego::readTemp() {
+vector<uchar> LowLevelStego::readTemp() {
 	Filer f;
     vector<uchar> data = f.readFile(tempFileName);
     return data;
 }
 
-void stego::LowLevelStego::writeTemp(uchar ** data) {
+void LowLevelStego::writeTemp(uchar ** data) {
 	ofstream out("temp.dat", ios::binary);
 	int width = 0;
 	for (int i = 0; i < 4; i++) {
@@ -27,7 +26,7 @@ void stego::LowLevelStego::writeTemp(uchar ** data) {
 	out.close();
 }
 
-ullong stego::LowLevelStego::takeFileBufferFromJpgStructure(std::string imagename, uchar ** data) {
+ullong LowLevelStego::takeFileBufferFromJpgStructure(std::string imagename, uchar ** data) {
 	ifstream in(imagename, ios::in | ios::binary);
 	in.seekg(0, ios::end);
 	ullong size = in.tellg();
@@ -63,7 +62,7 @@ ullong stego::LowLevelStego::takeFileBufferFromJpgStructure(std::string imagenam
 	return dataSize;
 }
 
-int stego::LowLevelStego::hideFileBufferInJpgStructure(string imagename, uchar ** data, ullong size) {
+int LowLevelStego::hideFileBufferInJpgStructure(string imagename, uchar ** data, ullong size) {
 	ifstream in(imagename, ios::binary);
 
 	uchar last, now;

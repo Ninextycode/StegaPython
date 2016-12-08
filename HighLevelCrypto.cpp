@@ -1,10 +1,9 @@
 #include "TempBasedStegonography.h"
-using namespace crypto;
-using namespace fileworks;
+using namespace stcr;
 using namespace std;
 
 
-void crypto::High_Level::encryptFile(std::string filename, std::string password, std::string resultDir) {
+void HighLevelCrypto::encryptFile(std::string filename, std::string password, std::string resultDir) {
     Filer filer;    
     Sha512 hash;
     
@@ -21,12 +20,12 @@ void crypto::High_Level::encryptFile(std::string filename, std::string password,
     
     passwordHash.resize(32);
     
-    vector<uchar> encryptedFile = encryptVectorByCipherBlockChaining(file, password, IV);
-
-    filer.writeFile(resultDir+filename+postfixForEncryptedFiles, encryptedFile);
+    vector<uchar> encryptedFile = encryptVectorByCipherBlockChaining(file, passwordHash, IV);
+    
+    filer.writeFile(encryptedFile, resultDir+filename+postfixForEncryptedFiles);
 }
 
-High_Level::encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
         std::vector<uchar>& password, std::vector<uchar>& IV) {
     LowLevelCrypto lowLevel;
     
@@ -49,7 +48,7 @@ High_Level::encryptVectorByCipherBlockChaining(std::vector<uchar>& data,
             tempBlockToEncrypt[j] = data[i + j - 16];
         }
         
-        tempBlockToEncrypt = xorFirstWithSecond(tempBlockToXorWith, tempBlockToEncrypt, 16);		
+        tempBlockToEncrypt = xorFirstWithSecond(tempBlockToXorWith, tempBlockToEncrypt);		
         vector<uchar> encryptedBlock = lowLevel.encryptAES(tempBlockToEncrypt, password);
 
         for (int j = 0; j < 16; j++) {
@@ -59,7 +58,7 @@ High_Level::encryptVectorByCipherBlockChaining(std::vector<uchar>& data,
     return encryptedData;
 }
 
-High_Level::padPKCS7(vector<uchar>& data) {
+void HighLevelCrypto::padPKCS7(vector<uchar>& data) {
     //value to be used in padding
     //16 - aes block size in bytes
     uchar paddingValue = 16 - data.size()%16;
@@ -69,13 +68,13 @@ High_Level::padPKCS7(vector<uchar>& data) {
 }
 
 
-High_Level::appendHashToVector(std::vector<uchar>& data) {
+void HighLevelCrypto::appendHashToVector(vector<uchar>& data) {
     Sha512 hash;
     vector<uchar> hashValue = hash.digest(data);
     data.insert(data.end(), hashValue.begin(), hashValue.end());
 }
 
-int crypto::High_Level::decryptFile(std::string filename, std::string password, std::string resultDir) {
+void HighLevelCrypto::decryptFile(string filename, string password, string resultDir) {
 	Filer filer;    
     Sha512 hash;
     
@@ -86,7 +85,7 @@ int crypto::High_Level::decryptFile(std::string filename, std::string password, 
 
     passwordHash.resize(32);
     
-    vector<uchar> decryptedFile = decryptVectorByCipherBlockChaining(file, password);
+    vector<uchar> decryptedFile = decryptVectorByCipherBlockChaining(file, passwordHash);
  
     bool isValid = checkHashAtTheEnd(file); 
     if(isValid) {
@@ -96,7 +95,7 @@ int crypto::High_Level::decryptFile(std::string filename, std::string password, 
     }
 }
 
-High_Level::decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
         std::vector<uchar>& password) {
     LowLevelCrypto lowLevel;
     
@@ -126,14 +125,14 @@ High_Level::decryptVectorByCipherBlockChaining(std::vector<uchar>& data,
 }
 
 
-High_Level::unpadPKCS7(vector<uchar>& data) {
+void HighLevelCrypto::unpadPKCS7(vector<uchar>& data) {
     uchar padLength = data.back();
     for(int i = 0; i < padLength; i++) {
         data.pop_back();
     }    
 }
 
-vector<uchar> crypto::High_Level::xorFirstWithSecond(vector<uchar>& a, vector<uchar>&  b) {
+vector<uchar> HighLevelCrypto::xorFirstWithSecond(vector<uchar>& a, vector<uchar>&  b) {
     ullong length = min(a.size(), b.size());
     vector<uchar> xored;
     xored.reserve(length);
@@ -145,7 +144,7 @@ vector<uchar> crypto::High_Level::xorFirstWithSecond(vector<uchar>& a, vector<uc
 }
 
 
-High_Level::checkHashAtTheEnd(std::vector<uchar>& data) {
+bool HighLevelCrypto::checkHashAtTheEnd(std::vector<uchar>& data) {
     vector<uchar> dataWithoutLast64bytes(data);
     dataWithoutLast64bytes.resize(data.size() - 64);
     

@@ -1,10 +1,10 @@
 #include "TempBasedStegonography.h"
 
-using namespace crypto;
+using namespace stcr;
 using namespace std;
         
-void LowLevelCrypto::encryptAES(uchar(&input)[16], uchar(&key)[32]) {
-	uchar dataMatrix[4][4];
+vector<uchar> LowLevelCrypto::encryptAES(vector<uchar>& data, vector<uchar>& password) {
+	/*uchar dataMatrix[4][4];
 	uchar w_key[240];
 	keyExpantion(key, w_key);
 
@@ -27,11 +27,13 @@ void LowLevelCrypto::encryptAES(uchar(&input)[16], uchar(&key)[32]) {
 		for (int c = 0; c < 4; c++) {
 			input[r + c * 4] = dataMatrix[r][c];
 		}
-	}
+	}*/
+    vector<uchar> v;
+    return v;
 }
 
-void LowLevelCrypto::decryptAES(uchar(&input)[16], uchar(&key)[32]) {
-	uchar dataMatrix[4][4];
+vector<uchar> LowLevelCrypto::decryptAES(std::vector<uchar>& data, std::vector<uchar>& password) {
+	/*uchar dataMatrix[4][4];
 	uchar w_key[240];
 	keyExpantion(key, w_key);
 
@@ -61,7 +63,9 @@ void LowLevelCrypto::decryptAES(uchar(&input)[16], uchar(&key)[32]) {
 		for (int c = 0; c < 4; c++) {
 			input[r + c * 4] = dataMatrix[r][c];
 		}
-	}
+	}*/
+    vector<uchar> v;
+    return v;
 }
 
 void LowLevelCrypto::keyScheduleCore(uchar(&data)[4], int i) {

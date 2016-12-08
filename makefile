@@ -1,8 +1,17 @@
 headers = sha512.h TempBasedStegonography.h
-sources = Filer.cpp High_Level.cpp Low_Level.cpp\
- sha512.cpp Sha512.cpp main.cpp
-objects = Filer.o High_Level.o Low_Level.o sha512.o main.o Sha512.o
+
+sources = VectorSubroutines.cpp Filer.cpp Sha512.cpp\
+    HighLevelCrypto.cpp LowLevelCrypto.cpp\
+    HighLevelStego.cpp LowLevelStego.cpp\
+    sha512.cpp main.cpp  
+
+objects = VectorSubroutines.o Filer.o Sha512.o\
+    HighLevelCrypto.o LowLevelCrypto.o\
+    HighLevelStego.o LowLevelStego.o\
+    sha512.o main.o  
+
 CC = g++ -std=c++14 -fpic -g
+LINK_FLAGS = -shared -lboost_python -lboost_unit_test_framework
 output = stega.so
 exec = stega
 
@@ -11,25 +20,38 @@ exec: $(objects)
 
 
 module: $(objects)
-	$(CC)  -shared -lboost_python -o $(output) $(objects) 
+	$(CC) $(LINK_FLAGS) -o $(output) $(objects) 
+
+
+Sha512.o: Sha512.cpp TempBasedStegonography.h
+	$(CC) -c Sha512.cpp
+
+VectorSubroutines.o: VectorSubroutines.cpp TempBasedStegonography.h
+	$(CC) -c VectorSubroutines.cpp
 
 Filer.o: Filer.cpp TempBasedStegonography.h
 	$(CC) -c Filer.cpp
 	
-High_Level.o: High_Level.cpp TempBasedStegonography.h
-	$(CC) -c High_Level.cpp
+HighLevelStego.o: HighLevelStego.cpp TempBasedStegonography.h
+	$(CC) -c HighLevelStego.cpp
 	
-Low_Level.o: Low_Level.cpp TempBasedStegonography.h
-	$(CC) -c Low_Level.cpp
+HighLevelCrypto.o: HighLevelCrypto.cpp TempBasedStegonography.h
+	$(CC) -c HighLevelCrypto.cpp
 	
+LowLevelStego.o: LowLevelStego.cpp TempBasedStegonography.h
+	$(CC) -c LowLevelStego.cpp
+
+LowLevelCrypto.o: LowLevelCrypto.cpp TempBasedStegonography.h
+	$(CC) -c LowLevelCrypto.cpp
+
 sha512.o: sha512.cpp sha512.h
 	$(CC) -c sha512.cpp
 
-Sha512.o: Sha512.cpp TempBasedStegonography.h
-	$(CC) -c Sha512.cpp
 	
 main.o: main.cpp TempBasedStegonography.h
 	$(CC) -c -I/usr/include/python3.4 main.cpp
+	
+
 	
 clean:
 	rm -f $(objects) $(output) 

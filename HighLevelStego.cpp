@@ -1,5 +1,5 @@
 #include "TempBasedStegonography.h"
-using namespace stego;
+using namespace stcr;
 using namespace std;
 
 
@@ -11,7 +11,7 @@ returns -2 if file with name *filename* is inacceptable
 returns -3 if file with name *filename* is too large to hide in temp.dat
 
 */
-int High_Level::hideFileInTemp(std::string filename) {
+int HighLevelStego::hideFileInTemp(std::string filename) {
  /*   uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
@@ -50,7 +50,7 @@ returns -1 if temp.dat is inacceptable
 returns -2 if cannot read file from temp.dat
 returns 0 if OK
 */
-int High_Level::takeFileFromTemp(std::string resultDir) {
+int HighLevelStego::takeFileFromTemp(std::string resultDir) {
     /* uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
@@ -78,12 +78,7 @@ int High_Level::takeFileFromTemp(std::string resultDir) {
     return 0;
 }
 
-stego::High_Level::High_Level()
-	: low_level(1), filer()
-{
-}
-
-int stego::High_Level::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
+int HighLevelStego::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
     /* uchar** secretBuffer = new uchar*;
     ullong secretSize = low_level.takeFileBufferFromJpgStructure(imagenameStd, secretBuffer);
     if (secretSize == 0) {
@@ -97,7 +92,7 @@ int stego::High_Level::takeFileFromJpgStructure(std::string imagenameStd, std::s
     return 0;
 }
 
-int stego::High_Level::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
+int HighLevelStego::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
     /*
     uchar** secretBuffer = new uchar*;
     ullong fileSize = filer.readAndEncodeFile(filenameStd, secretBuffer);
@@ -115,7 +110,3 @@ int stego::High_Level::hideFileToJpgStructure(std::string imagenameStd, std::str
     */
     return 0;
 }
-
-stego::High_Level::~High_Level() {
-}
-

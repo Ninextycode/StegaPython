@@ -11,18 +11,15 @@ typedef unsigned char uchar;
 typedef unsigned int  uint;
 typedef unsigned long long  ullong;
 
-namespace subroutines {
+namespace stcr {
     class VectorSubroutines {
     public:
         std::vector<uchar> vectorFromString(std::string);
-        std::string stringFromVector(std::vector<uchar>& data, ullong begin, ullong end);
+        std::string stringFromVector(const std::vector<uchar>& data, ullong begin, ullong end);
         void appendUllong(std::vector<uchar>& data, ullong x);
-        ullong getUllong(std::vector<uchar>& data, ullong position);
-        void truncateToSile(std::vector<uchar>& data, ullong desiredSize);
+        ullong getUllong(const std::vector<uchar>& data, ullong position);
     };
-}
 
-namespace fileworks {
     class Filer {
     public:
         std::vector<uchar> readAndEncodeFile(std::string pathToFile); //encodes file name and size to vector
@@ -40,9 +37,7 @@ namespace fileworks {
         void writeLengthToVector(std::vector<uchar>& data, ullong length);
         void writeFileToVector(std::vector<uchar>& data, std::string pathToFile);
     };
-}
 
-namespace stego {
     class LowLevelStego {
     public:
         std::vector<uchar> readTemp();
@@ -57,10 +52,10 @@ namespace stego {
         std::string directory;
     };
 
-    class High_Level {
+    class HighLevelStego {
     public:
 
-        High_Level();
+        HighLevelStego();
         
         /*
         Hides file <i>filename</i> in temp.dat
@@ -92,16 +87,8 @@ namespace stego {
         */
         int hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd);
 
-
-        ~High_Level();
-    private:
-            LowLevelStego low_level;
-            fileworks::Filer filer;
     };
-}
 
-namespace crypto {
-   
     class LowLevelCrypto {
     public:
         std::vector<uchar> encryptAES(std::vector<uchar>& data, std::vector<uchar>& password);
@@ -138,14 +125,14 @@ namespace crypto {
 
     };
 
-    class High_Level {
+    class HighLevelCrypto {
     public:
         void encryptFile(std::string filename, std::string password, std::string resultDir);
         void decryptFile(std::string filename, std::string password, std::string resultDir);
 
     private:
         void appendHashToVector(std::vector<uchar>& data);
-        void checkHashAtTheEnd(std::vector<uchar>& data);
+        bool checkHashAtTheEnd(std::vector<uchar>& data);
         
         std::vector<uchar> encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
                 std::vector<uchar>& password, std::vector<uchar>& IV);
