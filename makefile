@@ -1,57 +1,59 @@
-headers = sha512.h TempBasedStegonography.h
+headers = sha512.h TempBasedSteganography.h
 
 sources = VectorSubroutines.cpp Filer.cpp Sha512.cpp\
     HighLevelCrypto.cpp LowLevelCrypto.cpp\
-    HighLevelStego.cpp LowLevelStego.cpp\
-    sha512.cpp main.cpp  
+    HighLevelStega.cpp LowLevelStega.cpp\
+      
 
 objects = VectorSubroutines.o Filer.o Sha512.o\
     HighLevelCrypto.o LowLevelCrypto.o\
-    HighLevelStego.o LowLevelStego.o\
-    sha512.o main.o  
+    HighLevelStega.o LowLevelStega.o\
+   
+special_objects = main.o Tests.o
 
 CC = g++ -std=c++14 -fpic -g
-LINK_FLAGS = -shared -lboost_python -lboost_unit_test_framework
+LINK_FLAGS = -shared -lboost_python 
 output = stega.so
 exec = stega
 
-exec: $(objects)
-	$(CC) -o $(exec) $(objects) 
+all: tests $(exec)
+	
 
+$(exec): $(objects) main.o
+	$(CC) -o $(exec) $(objects) main.o
 
-module: $(objects)
-	$(CC) $(LINK_FLAGS) -o $(output) $(objects) 
+tests: $(objects) Tests.o
+	$(CC) -o tests $(objects) Tests.o -lboost_unit_test_framework
+	./tests --log_level=test_suite
 
-
-Sha512.o: Sha512.cpp TempBasedStegonography.h
+Sha512.o: Sha512.cpp TempBasedSteganography.h
 	$(CC) -c Sha512.cpp
 
-VectorSubroutines.o: VectorSubroutines.cpp TempBasedStegonography.h
+VectorSubroutines.o: VectorSubroutines.cpp TempBasedSteganography.h
 	$(CC) -c VectorSubroutines.cpp
 
-Filer.o: Filer.cpp TempBasedStegonography.h
+Filer.o: Filer.cpp TempBasedSteganography.h
 	$(CC) -c Filer.cpp
 	
-HighLevelStego.o: HighLevelStego.cpp TempBasedStegonography.h
-	$(CC) -c HighLevelStego.cpp
+HighLevelStega.o: HighLevelStega.cpp TempBasedSteganography.h
+	$(CC) -c HighLevelStega.cpp
 	
-HighLevelCrypto.o: HighLevelCrypto.cpp TempBasedStegonography.h
+HighLevelCrypto.o: HighLevelCrypto.cpp TempBasedSteganography.h
 	$(CC) -c HighLevelCrypto.cpp
 	
-LowLevelStego.o: LowLevelStego.cpp TempBasedStegonography.h
-	$(CC) -c LowLevelStego.cpp
+LowLevelStega.o: LowLevelStega.cpp TempBasedSteganography.h
+	$(CC) -c LowLevelStega.cpp
 
-LowLevelCrypto.o: LowLevelCrypto.cpp TempBasedStegonography.h
+LowLevelCrypto.o: LowLevelCrypto.cpp TempBasedSteganography.h
 	$(CC) -c LowLevelCrypto.cpp
 
-sha512.o: sha512.cpp sha512.h
-	$(CC) -c sha512.cpp
-
 	
-main.o: main.cpp TempBasedStegonography.h
+main.o: main.cpp TempBasedSteganography.h
 	$(CC) -c -I/usr/include/python3.4 main.cpp
 	
-
+Tests.o: Tests.cpp TempBasedSteganography.h
+	$(CC) -c Tests.cpp
 	
+
 clean:
-	rm -f $(objects) $(output) 
+	rm -f $(objects) $(output) $(special_objects)

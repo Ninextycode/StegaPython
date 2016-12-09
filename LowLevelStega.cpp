@@ -1,15 +1,15 @@
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 
 using namespace stcr;
 using namespace std;
 
-vector<uchar> LowLevelStego::readTemp() {
+vector<uchar> LowLevelStega::readTemp() {
 	Filer f;
     vector<uchar> data = f.readFile(tempFileName);
     return data;
 }
 
-void LowLevelStego::writeTemp(uchar ** data) {
+void LowLevelStega::writeTemp(uchar ** data) {
 	ofstream out("temp.dat", ios::binary);
 	int width = 0;
 	for (int i = 0; i < 4; i++) {
@@ -26,7 +26,7 @@ void LowLevelStego::writeTemp(uchar ** data) {
 	out.close();
 }
 
-ullong LowLevelStego::takeFileBufferFromJpgStructure(std::string imagename, uchar ** data) {
+ullong LowLevelStega::takeFileBufferFromJpgStructure(std::string imagename, uchar ** data) {
 	ifstream in(imagename, ios::in | ios::binary);
 	in.seekg(0, ios::end);
 	ullong size = in.tellg();
@@ -62,7 +62,7 @@ ullong LowLevelStego::takeFileBufferFromJpgStructure(std::string imagename, ucha
 	return dataSize;
 }
 
-int LowLevelStego::hideFileBufferInJpgStructure(string imagename, uchar ** data, ullong size) {
+int LowLevelStega::hideFileBufferInJpgStructure(string imagename, uchar ** data, ullong size) {
 	ifstream in(imagename, ios::binary);
 
 	uchar last, now;
@@ -97,7 +97,7 @@ int LowLevelStego::hideFileBufferInJpgStructure(string imagename, uchar ** data,
 	return size;
 }
 
-uchar LowLevelStego::read8LSB(uchar* data) {
+uchar LowLevelStega::read8LSB(uchar* data) {
 	uchar secret = 0;
 	for (int i = 0; i < 8; i++) {
 		secret |= (data[i] & 0x01) << (7 - i);
@@ -109,7 +109,7 @@ uchar LowLevelStego::read8LSB(uchar* data) {
 secret and container are the char arrays that were gotten from readFile and readImage
 ONLY in this case the function works  properly
 */
-int LowLevelStego::keylessLSB(uchar** container, uchar** secret) {
+int LowLevelStega::keylessLSB(uchar** container, uchar** secret) {
 
 	uchar formatSize = *(*secret)++;
 	*secret += formatSize;
@@ -158,7 +158,7 @@ container is a char array gotten fron imageReader, where image contained a secre
 secret is a pointer to  an empty char array
 ONLY in this case the function works  properly
 */
-ullong LowLevelStego::de_keylessLSB(uchar** container, uchar** secret) {
+ullong LowLevelStega::de_keylessLSB(uchar** container, uchar** secret) {
 
 	int carate = 0;
 	carate += 8; //avoid reading size information
@@ -201,4 +201,8 @@ ullong LowLevelStego::de_keylessLSB(uchar** container, uchar** secret) {
 
 	*secret -= (1 + filenameSize + 8 + fileSize);
 	return (1 + filenameSize + 8 + fileSize);
+}
+
+string LowLevelStega::getTempFileName() {
+    return tempFileName;
 }

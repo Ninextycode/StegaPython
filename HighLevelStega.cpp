@@ -1,17 +1,9 @@
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 using namespace stcr;
 using namespace std;
 
 
-
-/*
-Hides file <i>filename</i> in temp.dat 
-returns -1 if temp.dat is inacceptable
-returns -2 if file with name *filename* is inacceptable
-returns -3 if file with name *filename* is too large to hide in temp.dat
-
-*/
-int HighLevelStego::hideFileInTemp(std::string filename) {
+void HighLevelStega::hideFileInTemp(std::string filename) {
  /*   uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
@@ -40,17 +32,10 @@ int HighLevelStego::hideFileInTemp(std::string filename) {
     delete[] *containerBuffer;
     delete secretBuffer;
     delete containerBuffer; */
-    return 0;
 }
 
 
-/*
-Takes from temp.dat and saves it to *resultDir* directory
-returns -1 if temp.dat is inacceptable
-returns -2 if cannot read file from temp.dat
-returns 0 if OK
-*/
-int HighLevelStego::takeFileFromTemp(std::string resultDir) {
+void HighLevelStega::takeFileFromTemp(std::string resultDir) {
     /* uchar** secretBuffer = new uchar*;
     uchar** containerBuffer = new uchar*;
 
@@ -75,10 +60,9 @@ int HighLevelStego::takeFileFromTemp(std::string resultDir) {
     delete[] *containerBuffer;
     delete secretBuffer;
     delete containerBuffer; */
-    return 0;
 }
 
-int HighLevelStego::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
+void HighLevelStega::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
     /* uchar** secretBuffer = new uchar*;
     ullong secretSize = low_level.takeFileBufferFromJpgStructure(imagenameStd, secretBuffer);
     if (secretSize == 0) {
@@ -89,10 +73,9 @@ int HighLevelStego::takeFileFromJpgStructure(std::string imagenameStd, std::stri
 
     delete[] *secretBuffer;
     delete secretBuffer; */
-    return 0;
 }
 
-int HighLevelStego::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
+void HighLevelStega::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
     /*
     uchar** secretBuffer = new uchar*;
     ullong fileSize = filer.readAndEncodeFile(filenameStd, secretBuffer);
@@ -108,5 +91,4 @@ int HighLevelStego::hideFileToJpgStructure(std::string imagenameStd, std::string
     delete[] *secretBuffer;
     delete secretBuffer;
     */
-    return 0;
 }

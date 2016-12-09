@@ -1,4 +1,4 @@
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 #include <boost/format.hpp>
 
 using namespace stcr;

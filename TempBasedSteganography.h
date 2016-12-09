@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <stdexcept> 
 #include <iterator> 
-#include "sha512.h"
+
 
 typedef unsigned char uchar;
 typedef unsigned int  uint;
@@ -14,10 +14,13 @@ typedef unsigned long long  ullong;
 namespace stcr {
     class VectorSubroutines {
     public:
-        std::vector<uchar> vectorFromString(std::string);
+        std::vector<uchar> vectorFromString(std::string s);
         std::string stringFromVector(const std::vector<uchar>& data, ullong begin, ullong end);
         void appendUllong(std::vector<uchar>& data, ullong x);
         ullong getUllong(const std::vector<uchar>& data, ullong position);
+        
+        void appendUint(std::vector<uchar>& data, uint x);
+        uint getUint(const std::vector<uchar>& data, ullong position);
     };
 
     class Filer {
@@ -29,7 +32,6 @@ namespace stcr {
     private:
         std::string extractFileNameFromVector(const std::vector<uchar>& data);
         
-        
         std::string getProperFileName(std::string pathToFile);
         ullong getFileLength(std::string pathToFile);
         
@@ -38,7 +40,7 @@ namespace stcr {
         void writeFileToVector(std::vector<uchar>& data, std::string pathToFile);
     };
 
-    class LowLevelStego {
+    class LowLevelStega {
     public:
         std::vector<uchar> readTemp();
         void writeTemp(uchar** data);
@@ -46,16 +48,15 @@ namespace stcr {
         ullong de_keylessLSB(uchar ** container, uchar ** secret);
         ullong takeFileBufferFromJpgStructure(std::string imagename, uchar** data);
         int hideFileBufferInJpgStructure(std::string imagename, uchar** data, ullong size);
+        std::string getTempFileName();
     private:
         std::string tempFileName = "temp.dat";
         uchar read8LSB(uchar* data);
         std::string directory;
     };
 
-    class HighLevelStego {
+    class HighLevelStega {
     public:
-
-        HighLevelStego();
         
         /*
         Hides file <i>filename</i> in temp.dat
@@ -64,7 +65,7 @@ namespace stcr {
         returns -3 if file with name *filename* is too large to hide in temp.dat
         returns 0 if OK
         */
-        int hideFileInTemp(std::string filename);
+        void hideFileInTemp(std::string filename);
 
         /*
         Takes from temp.dat and saves it to *resultDir* directory
@@ -72,20 +73,20 @@ namespace stcr {
         returns -2 if cannot read file from temp.dat
         returns 0 if OK
         */
-        int takeFileFromTemp(std::string resultDir);
+        void takeFileFromTemp(std::string resultDir);
 
         /*
         returns -1 if no file found
         returns 0 if OK
         */
-        int takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd);
+        void takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd);
 
         /*
         returns -1 if problem reading file
         returns -2 if there is already file in image
         returns 0 if OK
         */
-        int hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd);
+        void hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd);
 
     };
 
@@ -129,23 +130,19 @@ namespace stcr {
     public:
         void encryptFile(std::string filename, std::string password, std::string resultDir);
         void decryptFile(std::string filename, std::string password, std::string resultDir);
-
+        
+        std::vector<uchar> encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+                std::vector<uchar>& password, std::vector<uchar>& IV);        
+        std::vector<uchar> decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
+                std::vector<uchar>& password);
     private:
         void appendHashToVector(std::vector<uchar>& data);
         bool checkHashAtTheEnd(std::vector<uchar>& data);
         
-        std::vector<uchar> encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
-                std::vector<uchar>& password, std::vector<uchar>& IV);
-        
-        std::vector<uchar> decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
-                std::vector<uchar>& password);
-        
         void padPKCS7(std::vector<uchar>&  data);
         void unpadPKCS7(std::vector<uchar>& data);
         
-        std::vector<uchar> xorFirstWithSecond(std::vector<uchar>& a, std::vector<uchar>& b);
-        
-        
+        std::vector<uchar> xorFirstWithSecond(std::vector<uchar>& a, std::vector<uchar>& b);   
         
         std::string postfixForEncryptedFiles = "_crypt.dat";
     };

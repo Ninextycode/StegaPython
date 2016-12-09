@@ -1,4 +1,4 @@
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 using namespace stcr;
 using namespace std;
 
@@ -14,6 +14,13 @@ void VectorSubroutines::appendUllong(vector<uchar>& data, ullong x) {
     }
 }
 
+void VectorSubroutines::appendUint(vector<uchar>& data, uint x) {
+    for(int i = 0; i < 4; i++) {
+        data.push_back( (uchar)((0xff000000 & x) >> (3*8)) );
+        x <<= 8;
+    }
+}
+
 ullong VectorSubroutines::getUllong(const vector<uchar>& data, ullong position) {
     ullong x = 0;
 	for (int i = 0; i < 8; i++) {
@@ -22,6 +29,13 @@ ullong VectorSubroutines::getUllong(const vector<uchar>& data, ullong position) 
     return x;
 }
 
+uint VectorSubroutines::getUint(const vector<uchar>& data, ullong position) {
+    ullong x = 0;
+	for (int i = 0; i < 4; i++) {
+		x |= (((ullong)data[position++]) << ((3 - i) * 8));
+	}
+    return x;
+}
 
 string VectorSubroutines::stringFromVector(const std::vector<uchar>& data, ullong begin, ullong end) {
     auto it1 = data.begin();

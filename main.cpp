@@ -1,6 +1,6 @@
-// tempBasedStegonography.cpp : Defines the entry point for the console application.
+// tempBasedSteganography.cpp : Defines the entry point for the console application.
 //
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 #include <iostream>
 
 #include <boost/format.hpp>
@@ -8,7 +8,9 @@
 
 using namespace std;
 
- 
+int test1();
+int test2();
+
 int main() {
     test1();
 }

@@ -1,4 +1,4 @@
-#include "TempBasedStegonography.h"
+#include "TempBasedSteganography.h"
 using namespace stcr;
 using namespace std;
 
