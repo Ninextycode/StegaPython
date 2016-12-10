@@ -21,7 +21,7 @@ vector<uchar> LowLevelStega::takeVectorFromJpgVector(const vector<uchar>& contai
 }
 
 void LowLevelStega::hideVectorInJpgVector(vector<uchar>& container, const vector<uchar>& secret) {
-    while(vectorContainsJpegTag(container)) {
+    if(vectorContainsJpegTag(container)) {
         eraseJpegTagData(container);
     }
     container.reserve(container.size() + 2 + 8 + secret.size()); //2 for tag 8 for length
