@@ -60,8 +60,11 @@ void Filer::writeFileToVector(std::vector<uchar>& data, std::string pathToFile){
     if(!in.is_open()){
         throw invalid_argument("Cannot write file to vector. Probably wrong filename");
     }
-    istream_iterator<uchar> in_iter(in), end;    
-    data.insert(data.end(), in_iter, end);    
+    data.reserve(data.size() + getFileLength(pathToFile));
+    char b;
+    while(in.read(&b, 1)) {        
+        data.push_back(b);
+    }
     in.close();
 }
 
@@ -81,10 +84,10 @@ void Filer::writeEncodedFile(const vector<uchar>& data, string directory) {
     ullong filenameEnd = 1 + filenameSize;
 	string filename = vs.stringFromVector(data, (ullong)1, filenameEnd);
 	ullong fileSize = vs.getUllong(data, filenameEnd);
-
-    int index = 1 + filenameSize + 8; 
+    int index = 1 + filenameSize + 8; //1 for filename length  length of filename + 8 for file data length
+    int startOfFileData = index;
 	ofstream out(directory + filename, ios::binary);
-	while (index < fileSize){
+	while (index < fileSize + startOfFileData){
         out << data[index++];
     }
 	out.close();

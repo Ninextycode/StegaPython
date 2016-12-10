@@ -154,18 +154,16 @@ BOOST_AUTO_TEST_CASE(encryptAndDecryptFile) {
     string password = "This is some stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
     string secret = "secret";
     string encryptedSecret = secret + cypherer.getPostfixForEncryptedFiles();
-    cout << 1 << "\n";
+
     vector<uchar> secretData = vs.vectorFromString(message);
     f.writeFile(secretData, secret);
-    cout << 2 << "\n";   
-    cypherer.encryptFile(secret, password, "/");
-    cout << 3 << "\n";
+ 
+    cypherer.encryptFile(secret, password, "");
     remove(secret.data());
-    cout << 4 << "\n";
-    cypherer.decryptFile(encryptedSecret, password, "/");
-    cout << 5 << "\n";
+    cypherer.decryptFile(encryptedSecret, password, "");
+
     vector<uchar> decryptedData = f.readFile(secret);
-    cout << 6 << "\n";
+
     remove(secret.data());
     remove(encryptedSecret.data());
     
@@ -241,7 +239,7 @@ BOOST_AUTO_TEST_CASE(jpegSteganography) {
     
     remove(secret.data());
 
-    hstega.takeFileFromTemp("/");
+    hstega.takeFileFromTemp("");
     
     vector<uchar> dataFromJpeg = f.readFile(secret);
     

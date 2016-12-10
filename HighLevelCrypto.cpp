@@ -10,7 +10,7 @@ void HighLevelCrypto::encryptFile(std::string filename, std::string password, st
     vector<uchar> file = filer.readAndEncodeFile(filename);
 
     appendHashToVector(file); //required for later authentication
-    
+
     vector<uchar> passwordVector(password.begin(), password.end());
     vector<uchar> passwordHash = hash.digest(passwordVector);
 
@@ -21,8 +21,9 @@ void HighLevelCrypto::encryptFile(std::string filename, std::string password, st
     passwordHash.resize(32);
     
     vector<uchar> encryptedFile = encryptVectorByCipherBlockChaining(file, passwordHash, IV);
-    
+
     filer.writeFile(encryptedFile, resultDir+filename+postfixForEncryptedFiles);
+    
 }
 
 vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
@@ -60,7 +61,6 @@ vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uc
     }
     
     unpadPKCS7(data);
-    
     return encryptedData;
 }
 
@@ -74,27 +74,22 @@ void HighLevelCrypto::padPKCS7(vector<uchar>& data) {
     }    
 }
 
-void HighLevelCrypto::appendHashToVector(vector<uchar>& data) {
-    Sha512 hash;
-    vector<uchar> hashValue = hash.digest(data);
-    data.insert(data.end(), hashValue.begin(), hashValue.end());
-}
-
 void HighLevelCrypto::decryptFile(string filename, string password, string resultDir) {
 	Filer filer;    
     Sha512 hash;
-    cout << filename;
+
     vector<uchar> file = filer.readFile(filename);
-    
+
     vector<uchar> passwordVector(password.begin(), password.end());
     vector<uchar> passwordHash = hash.digest(passwordVector);
 
     passwordHash.resize(32);
     
     vector<uchar> decryptedFile = decryptVectorByCipherBlockChaining(file, passwordHash);
- 
-    bool isValid = checkHashAtTheEnd(file); 
+    
+    bool isValid = checkHashAtTheEnd(decryptedFile); 
     if(isValid) {
+        decryptedFile.resize(decryptedFile.size() - 64); //removing hash
         filer.writeEncodedFile(decryptedFile, resultDir);
     } else {
         throw runtime_error("Cannot validate the file");
@@ -148,15 +143,23 @@ vector<uchar> HighLevelCrypto::xorFirstWithSecond(const vector<uchar>& a, const 
     return xored;
 }
 
+void HighLevelCrypto::appendHashToVector(vector<uchar>& data) {
+    Sha512 hash;
+    vector<uchar> hashValue = hash.digest(data);
+    data.insert(data.end(), hashValue.begin(), hashValue.end());
+}
+
 bool HighLevelCrypto::checkHashAtTheEnd(const std::vector<uchar>& data) {
-    vector<uchar> dataWithoutLast64bytes(data);
-    dataWithoutLast64bytes.resize(data.size() - 64);
+    vector<uchar> dataWithoutLast64bytes(data.begin(), data.end() - 64);
     
     Sha512 hash;
     vector<uchar> hashValue = hash.digest(dataWithoutLast64bytes);
     vector<uchar> expectedHashValue(data.end()-64, data.end());
+    
     return hashValue == expectedHashValue;
 }
+
+
 
 string HighLevelCrypto::getPostfixForEncryptedFiles() {
     return postfixForEncryptedFiles;
