@@ -7,12 +7,14 @@
 
 
 using namespace std;
+using namespace stcr;
 
 int test1();
 int test2();
 
 int main() {
-    test1();
+    HighLevelStega hstega;
+    hstega.encodeAndHideFileToJpgStructure("AllahAkbar", "");
 }
 
 int test1(){

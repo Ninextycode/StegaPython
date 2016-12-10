@@ -1,8 +1,21 @@
 #include "TempBasedSteganography.h"
-#include <boost/format.hpp>
 
 using namespace stcr;
 using namespace std;
+
+void Sha512::appendHashToVector(vector<uchar>& data) {
+    vector<uchar> hashValue = digest(data);
+    data.insert(data.end(), hashValue.begin(), hashValue.end());
+}
+
+bool Sha512::checkHashAtTheEnd(const std::vector<uchar>& data) {
+    vector<uchar> dataWithoutLast64bytes(data.begin(), data.end() - 64);
+    
+    vector<uchar> hashValue = digest(dataWithoutLast64bytes);
+    vector<uchar> expectedHashValue(data.end()-64, data.end());
+    
+    return hashValue == expectedHashValue;
+}
 
 vector<uchar> Sha512::digest(vector<uchar>& data){
     copy(begin(H_static), end(H_static), begin(H));

@@ -3,92 +3,128 @@ using namespace stcr;
 using namespace std;
 
 
-void HighLevelStega::hideFileInTemp(std::string filename) {
- /*   uchar** secretBuffer = new uchar*;
-    uchar** containerBuffer = new uchar*;
-
-    ullong imageSize = low_level.readTemp(containerBuffer);
-    if (imageSize == 0) {
-        delete[] *containerBuffer;
-        delete containerBuffer;
-        delete secretBuffer;
-        return -1;
-    }
-
-    ullong fileSize = filer.readAndEncodeFile(filename, secretBuffer);
-    if (fileSize == 0) {
-        delete[] *secretBuffer;
-        delete[] *containerBuffer;
-        delete secretBuffer;
-        delete containerBuffer;
-        return -2;
-    }
-
-    int result = low_level.keylessLSB(containerBuffer, secretBuffer);
-    if (result != 0) return -3;
-    low_level.writeTemp(containerBuffer);
-
-    delete[] *secretBuffer;
-    delete[] *containerBuffer;
-    delete secretBuffer;
-    delete containerBuffer; */
+void HighLevelStega::hideVectorInTemp(const vector<uchar>& data) {
+    Filer f;
+    VectorSubroutines vs;
+    vector<uchar> tempData = f.readFile(tempFileName);
+    
+    uint width = vs.getUint(tempData, 0);    
+    uint height = vs.getUint(tempData, 4);
+    
+    ullong rgbRegionSize = 3 * width * height;
+    ullong rgbRegionStart = 8;
+    ullong rgbRegionEnd = rgbRegionStart + rgbRegionSize;
+    
+    LowLevelStega lstega;
+    lstega.keylessLSB(tempData, data, rgbRegionStart, rgbRegionEnd);
+    
+    f.writeFile(tempData, tempFileName);
 }
 
 
-void HighLevelStega::takeFileFromTemp(std::string resultDir) {
-    /* uchar** secretBuffer = new uchar*;
-    uchar** containerBuffer = new uchar*;
-
-    ullong containerSize = low_level.readTemp(containerBuffer);
-    if (containerSize == 0) {
-        delete[] *containerBuffer;
-        delete containerBuffer;
-        delete secretBuffer;
-        return -1;
-    }
-    ullong secretSize = low_level.de_keylessLSB(containerBuffer, secretBuffer);
-    if (secretSize == 0) {
-        delete[] *containerBuffer;
-        delete containerBuffer;
-        delete secretBuffer;
-        return -2;
-    }
-    filer.writeEncodedFile(resultDir, secretBuffer);
-
-
-    delete[] *secretBuffer;
-    delete[] *containerBuffer;
-    delete secretBuffer;
-    delete containerBuffer; */
+vector<uchar> HighLevelStega::takeVectorFromTemp() {
+    Filer f;
+    VectorSubroutines vs;
+    vector<uchar> tempData = f.readFile(tempFileName);
+    
+    uint width = vs.getUint(tempData, 0);    
+    uint height = vs.getUint(tempData, 4);
+    
+    ullong rgbRegionSize = 3 * width * height;
+    ullong rgbRegionStart = 8;
+    ullong rgbRegionEnd = rgbRegionStart + rgbRegionSize;
+    
+    LowLevelStega lstega;
+    vector<uchar> data = lstega.de_keylessLSB(tempData, rgbRegionStart, rgbRegionEnd);
+    return data;
 }
 
-void HighLevelStega::takeFileFromJpgStructure(std::string imagenameStd, std::string resultDirStd) {
-    /* uchar** secretBuffer = new uchar*;
-    ullong secretSize = low_level.takeFileBufferFromJpgStructure(imagenameStd, secretBuffer);
-    if (secretSize == 0) {
-        delete secretBuffer;
-        return -1;
-    }
-    filer.writeEncodedFile(resultDirStd, secretBuffer);
+void HighLevelStega::hideVectorInJpgStructure(const vector<uchar>& data, std::string imagename){
+    Filer f;
+    LowLevelStega lstega;
+    vector<uchar> imageData = f.readFile(imagename);
+    lstega.hideVectorInJpgVector(imageData, data);
+    f.writeFile(imageData, imagename);
+};
 
-    delete[] *secretBuffer;
-    delete secretBuffer; */
+vector<uchar> HighLevelStega::takeVectorFromJpgStructure(std::string imagename){
+    Filer f;
+    LowLevelStega lstega;
+    vector<uchar> imageData = f.readFile(imagename);
+    vector<uchar> secret = lstega.takeVectorFromJpgVector(imageData);
+    return secret;
+};
+
+void HighLevelStega::cleanJpegFile(string filename) {
+    Filer f;
+    LowLevelStega lstega;
+    vector<uchar> imageData = f.readFile(filename);
+    lstega.eraseJpegTagData(imageData);
+    f.writeFile(imageData, filename);
 }
 
-void HighLevelStega::hideFileToJpgStructure(std::string imagenameStd, std::string filenameStd) {
-    /*
-    uchar** secretBuffer = new uchar*;
-    ullong fileSize = filer.readAndEncodeFile(filenameStd, secretBuffer);
-    if (fileSize == 0) {
-        delete secretBuffer;
-        return -1;
-    }
-    int result = low_level.hideFileBufferInJpgStructure(imagenameStd, secretBuffer, fileSize);
-    if (result == 0) {
-        delete secretBuffer;
-        return -2;
-    }
-    delete[] *secretBuffer;
-    delete secretBuffer;
-    */
+
+void HighLevelStega::hideFielInTemp(std::string filename) {
+    Filer f;
+    vector<uchar> data = f.readAndEncodeFile(filename);
+    hideVectorInTemp(data);
+};
+
+void HighLevelStega::takeFileFromTemp(std::string resultDir){
+    vector<uchar> data = takeVectorFromTemp();
+    Filer f;
+    f.writeEncodedFile(data, resultDir);
+};
+
+void HighLevelStega::hideFileInJpgStructure(std::string filename, std::string imagename) {
+    Filer f;
+    vector<uchar> data = f.readAndEncodeFile(filename);
+    hideVectorInJpgStructure(data, imagename);
+};
+
+void HighLevelStega::takeFileFromJpgStructure( std::string imagename, std::string resultDir) {
+    vector<uchar> data = takeVectorFromJpgStructure(imagename);
+    Filer f;
+    f.writeEncodedFile(data, resultDir); 
+};
+
+
+void HighLevelStega::encodeAndHideFielInTemp(std::string password, std::string filename) {
+    Filer f;
+    vector<uchar> data = f.readAndEncodeFile(filename);
+    HighLevelCrypto hcrypt;
+    VectorSubroutines vs;
+    vector<uchar> encrypted = hcrypt.encryptVectorByCipherBlockChaining(data, password);
+    hideVectorInTemp(encrypted);
+};
+
+void HighLevelStega::decodeAndTakeFileFromTemp(std::string password, std::string resultDir) {
+    Filer f;
+    vector<uchar> encrypted = takeVectorFromTemp();
+    HighLevelCrypto hcrypt;
+    vector<uchar> data = hcrypt.decryptVectorByCipherBlockChaining(encrypted, password);
+   
+    f.writeEncodedFile(data, resultDir);
+};
+
+void HighLevelStega::encodeAndHideFileToJpgStructure(std::string password, std::string filename, std::string imagename) {
+    Filer f;
+    vector<uchar> data = f.readAndEncodeFile(filename);
+    HighLevelCrypto hcrypt;
+    VectorSubroutines vs;
+    vector<uchar> encrypted = hcrypt.encryptVectorByCipherBlockChaining(data, password);
+    hideVectorInJpgStructure(encrypted, imagename);
+};
+
+void HighLevelStega::decodeAndTakeFileFromJpgStructure(std::string password, std::string imagename, std::string resultDir) {
+    Filer f;
+    vector<uchar> encrypted = takeVectorFromJpgStructure(imagename);
+    HighLevelCrypto hcrypt;
+    vector<uchar> data = hcrypt.decryptVectorByCipherBlockChaining(encrypted, password);
+    
+    f.writeEncodedFile(data, resultDir);
+};
+
+string HighLevelStega::getTempFileName() {
+    return tempFileName;
 }
