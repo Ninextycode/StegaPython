@@ -3,69 +3,70 @@
 using namespace stcr;
 using namespace std;
         
-vector<uchar> LowLevelCrypto::encryptAES(vector<uchar>& data, vector<uchar>& password) {
-	/*uchar dataMatrix[4][4];
-	uchar w_key[240];
-	keyExpantion(key, w_key);
+vector<uchar> LowLevelCrypto::encryptAES(const vector<uchar>& data, const vector<uchar>& key) {
+	uchar dataMatrix[4][4];
+	vector<uchar> expandedKey = keyExpantion(key);
 
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
-			dataMatrix[r][c] = input[r + c * 4];
+			dataMatrix[r][c] = data[r + c * 4];
 		}
 	}
-	addRoundKey(w_key, dataMatrix, 0);
+	addRoundKey(expandedKey, dataMatrix, 0);
 	for (int i = 1; i < 14; i++) {
 		subData(dataMatrix);
 		shiftRows(dataMatrix);
 		mixCols(dataMatrix);
-		addRoundKey(w_key, dataMatrix, i);
+		addRoundKey(expandedKey, dataMatrix, i);
 	}	
 	subData(dataMatrix);
 	shiftRows(dataMatrix);
-	addRoundKey(w_key, dataMatrix, 14);
-	for (int r = 0; r < 4; r++) {
+	addRoundKey(expandedKey, dataMatrix, 14);
+	
+    vector<uchar> encrypted;
+    encrypted.resize(16);
+    for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
-			input[r + c * 4] = dataMatrix[r][c];
-		}
-	}*/
-    vector<uchar> v;
-    return v;
-}
-
-vector<uchar> LowLevelCrypto::decryptAES(std::vector<uchar>& data, std::vector<uchar>& password) {
-	/*uchar dataMatrix[4][4];
-	uchar w_key[240];
-	keyExpantion(key, w_key);
-
-	for (int r = 0; r < 4; r++) {
-		for (int c = 0; c < 4; c++) {
-			dataMatrix[r][c] = input[r + c * 4];
+			encrypted[r + c * 4] = dataMatrix[r][c];
 		}
 	}
+    
+    return encrypted;
+}
 
+vector<uchar> LowLevelCrypto::decryptAES(const vector<uchar>& data, const vector<uchar>& key) {
+	uchar dataMatrix[4][4];
+	vector<uchar> expandedKey = keyExpantion(key);
 
-	addRoundKey(w_key, dataMatrix, 14);
+	for (int r = 0; r < 4; r++) {
+		for (int c = 0; c < 4; c++) {
+			dataMatrix[r][c] = data[r + c * 4];
+		}
+	}
+	addRoundKey(expandedKey, dataMatrix, 14);
 
 	for (int i = 1; i < 14; i++) {
 
 		invShiftRows(dataMatrix);
 		invSubData(dataMatrix);
-		addRoundKey(w_key, dataMatrix, 14 - i);
+		addRoundKey(expandedKey, dataMatrix, 14 - i);
 		invMixCols(dataMatrix);
 
 	}
 
 	invSubData(dataMatrix);
 	invShiftRows(dataMatrix);
-	addRoundKey(w_key, dataMatrix, 0);
+	addRoundKey(expandedKey, dataMatrix, 0);
 
+    vector<uchar> decrypted;
+    decrypted.resize(16);
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
-			input[r + c * 4] = dataMatrix[r][c];
+			decrypted[r + c * 4] = dataMatrix[r][c];
 		}
-	}*/
-    vector<uchar> v;
-    return v;
+	}
+    
+    return decrypted;
 }
 
 void LowLevelCrypto::keyScheduleCore(uchar(&data)[4], int i) {
@@ -136,7 +137,7 @@ void LowLevelCrypto::subData(uchar(&data)[4][4]) {
 	}
 }
 
-void LowLevelCrypto::addRoundKey(uchar(&key)[240], uchar(&data)[4][4], int round) {
+void LowLevelCrypto::addRoundKey(const vector<uchar>& key, uchar(&data)[4][4], int round) {
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
 			data[r][c] ^= key[round*16 + r+c*4];
@@ -144,7 +145,7 @@ void LowLevelCrypto::addRoundKey(uchar(&key)[240], uchar(&data)[4][4], int round
 	}
 }
 
-void LowLevelCrypto::multiply4(uchar(&pred)[4][4], uchar(&data)[4][4]) {
+void LowLevelCrypto::multiply4(const uchar(&pred)[4][4], uchar(&data)[4][4]) {
 	uchar result[4][4];
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 4; c++) {
@@ -162,18 +163,20 @@ void LowLevelCrypto::multiply4(uchar(&pred)[4][4], uchar(&data)[4][4]) {
 	}
 }
 
-void LowLevelCrypto::keyExpantion(uchar(&key)[32], uchar(&w_key)[240])
-{
+vector<uchar> LowLevelCrypto::keyExpantion(const vector<uchar>& key) {
+    vector<uchar> expandedKey;
+    expandedKey.resize(240);
+    
 	for (int k = 0; k < 32 ; k++) {
-		w_key[k] = key[k];
+		expandedKey[k] = key[k];
 	}
 	int I = 1;
 	for (int k = 32; k < 240; k+=4) {
 		uchar t[4]{ 
-			w_key[k - 4], 
-			w_key[k - 3],
-			w_key[k - 2],
-			w_key[k - 1] 
+			expandedKey[k - 4], 
+			expandedKey[k - 3],
+			expandedKey[k - 2],
+			expandedKey[k - 1] 
 		};
 		if ((k/4) % 8 == 0) {
 			keyScheduleCore(t, I);
@@ -181,11 +184,12 @@ void LowLevelCrypto::keyExpantion(uchar(&key)[32], uchar(&w_key)[240])
 		} else if ((k/4) % 8 == 4) {
 			subWord(t);
 		}
-		w_key[k  ] = t[0] ^ w_key[k - 32];
-		w_key[k+1] = t[1] ^ w_key[k - 32 + 1];
-		w_key[k+2] = t[2] ^ w_key[k - 32 + 2];
-		w_key[k+3] = t[3] ^ w_key[k - 32 + 3];
+		expandedKey[k  ] = t[0] ^ expandedKey[k - 32];
+		expandedKey[k+1] = t[1] ^ expandedKey[k - 32 + 1];
+		expandedKey[k+2] = t[2] ^ expandedKey[k - 32 + 2];
+		expandedKey[k+3] = t[3] ^ expandedKey[k - 32 + 3];
 	}
+    return expandedKey;
 }
 
 uchar LowLevelCrypto::multiplyInG256(uchar a, uchar b) {
@@ -203,9 +207,7 @@ uchar LowLevelCrypto::multiplyInG256(uchar a, uchar b) {
 	return p;
 }
 
-
-
-uchar LowLevelCrypto::s_box[256] = {
+const uchar LowLevelCrypto::s_box[256] = {
 	0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7 ,0xab, 0x76,
 	0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
 	0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -224,8 +226,7 @@ uchar LowLevelCrypto::s_box[256] = {
 	0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-uchar LowLevelCrypto::inverce_s_box[256] =
-{
+const uchar LowLevelCrypto::inverce_s_box[256] = {
 	0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
 	0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
 	0x54, 0x7B, 0x94, 0x32, 0xA6, 0xC2, 0x23, 0x3D, 0xEE, 0x4C, 0x95, 0x0B, 0x42, 0xFA, 0xC3, 0x4E,
@@ -244,7 +245,7 @@ uchar LowLevelCrypto::inverce_s_box[256] =
 	0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
 
-uchar LowLevelCrypto::rcon[256] = {
+const uchar LowLevelCrypto::rcon[256] = {
 	0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
 	0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
 	0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
@@ -263,15 +264,14 @@ uchar LowLevelCrypto::rcon[256] = {
 	0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d
 };
 
-
-uchar LowLevelCrypto::rijndael[4][4] = {
+const uchar LowLevelCrypto::rijndael[4][4] = {
 	{ 0x02, 0x03, 0x01, 0x01 },
 	{ 0x01, 0x02, 0x03, 0x01 },
 	{ 0x01, 0x01, 0x02, 0x03 },
 	{ 0x03, 0x01, 0x01, 0x02 }
 };
 
-uchar LowLevelCrypto::inverce_rijndael[4][4] = {
+const uchar LowLevelCrypto::inverce_rijndael[4][4] = {
 	{ 0x0e, 0x0b, 0x0d, 0x09 },
 	{ 0x09, 0x0e, 0x0b, 0x0d },
 	{ 0x0d, 0x09, 0x0e, 0x0b },

@@ -34,7 +34,7 @@ string Filer::getProperFileName(string pathToFile){
 ullong Filer::getFileLength(string pathToFile) {
     ifstream in(pathToFile, ifstream::ate | ifstream::binary);
     if(!in.is_open()){
-        throw invalid_argument("Wrong filenamme");
+        throw invalid_argument("Cannot get file length. Probably wrong filename.");
     }
     ullong length = in.tellg(); 
     in.close();
@@ -58,7 +58,7 @@ void Filer::writeLengthToVector(vector<uchar>& data, ullong length) {
 void Filer::writeFileToVector(std::vector<uchar>& data, std::string pathToFile){
     ifstream in(pathToFile, ios::binary);
     if(!in.is_open()){
-        throw invalid_argument("Wrong filenamme");
+        throw invalid_argument("Cannot write file to vector. Probably wrong filename");
     }
     istream_iterator<uchar> in_iter(in), end;    
     data.insert(data.end(), in_iter, end);    

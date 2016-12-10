@@ -26,10 +26,12 @@ void HighLevelCrypto::encryptFile(std::string filename, std::string password, st
 }
 
 vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
-        std::vector<uchar>& password, std::vector<uchar>& IV) {
+        const std::vector<uchar>& password, const std::vector<uchar>& IV) {
     LowLevelCrypto lowLevel;
     
-    ullong eryptedDataSize = 16 + (data.size() / 16 + 1) * 16;
+    //16 bytes of IV + 16 * number of blocks rounded up bits of data
+    ullong eryptedDataSize = 16 + (data.size() / 16 + 1) * 16; 
+
     vector<uchar> encryptedData;
     encryptedData.reserve(eryptedDataSize);
     
@@ -37,7 +39,8 @@ vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uc
         encryptedData.push_back(IV[i]);
     }
 
-    padPKCS7(encryptedData);
+    padPKCS7(data);
+    
     vector<uchar> tempBlockToEncrypt, tempBlockToXorWith;
     tempBlockToEncrypt.resize(16);  
     tempBlockToXorWith.resize(16);
@@ -48,13 +51,16 @@ vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uc
             tempBlockToEncrypt[j] = data[i + j - 16];
         }
         
-        tempBlockToEncrypt = xorFirstWithSecond(tempBlockToXorWith, tempBlockToEncrypt);		
-        vector<uchar> encryptedBlock = lowLevel.encryptAES(tempBlockToEncrypt, password);
+        vector<uchar> tempBlockToEncryptXored = xorFirstWithSecond(tempBlockToXorWith, tempBlockToEncrypt);		
+        vector<uchar> encryptedBlock = lowLevel.encryptAES(tempBlockToEncryptXored, password);
 
         for (int j = 0; j < 16; j++) {
             encryptedData.push_back(encryptedBlock[j]);
         }
     }
+    
+    unpadPKCS7(data);
+    
     return encryptedData;
 }
 
@@ -62,11 +68,11 @@ void HighLevelCrypto::padPKCS7(vector<uchar>& data) {
     //value to be used in padding
     //16 - aes block size in bytes
     uchar paddingValue = 16 - data.size()%16;
+
     for(int i = 0; i < paddingValue; i++) {
         data.push_back(paddingValue);
     }    
 }
-
 
 void HighLevelCrypto::appendHashToVector(vector<uchar>& data) {
     Sha512 hash;
@@ -77,7 +83,7 @@ void HighLevelCrypto::appendHashToVector(vector<uchar>& data) {
 void HighLevelCrypto::decryptFile(string filename, string password, string resultDir) {
 	Filer filer;    
     Sha512 hash;
-    
+    cout << filename;
     vector<uchar> file = filer.readFile(filename);
     
     vector<uchar> passwordVector(password.begin(), password.end());
@@ -95,8 +101,8 @@ void HighLevelCrypto::decryptFile(string filename, string password, string resul
     }
 }
 
-vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
-        std::vector<uchar>& password) {
+vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(const std::vector<uchar>& data, 
+        const std::vector<uchar>& password) {
     LowLevelCrypto lowLevel;
     
     ullong deyptedDataSize = data.size() - 16;
@@ -110,7 +116,7 @@ vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(std::vector<uc
     for (int i = 16; i < data.size(); i+=16) {        
         for (int j = 0; j < 16; j++) {
             tempBlockToXorWith[j] = data[i + j - 16]; //get values of the previously encryped block
-            tempBlockToDecrypt[j] = data[i + j - 16];
+            tempBlockToDecrypt[j] = data[i + j];
         }        
         		
         vector<uchar> decryptedBlock = lowLevel.decryptAES(tempBlockToDecrypt, password);
@@ -119,20 +125,19 @@ vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(std::vector<uc
             decryptedData.push_back(decryptedBlock[j]);
         }
     }
-    
+
     unpadPKCS7(decryptedData);
+
     return decryptedData;
 }
 
 
 void HighLevelCrypto::unpadPKCS7(vector<uchar>& data) {
     uchar padLength = data.back();
-    for(int i = 0; i < padLength; i++) {
-        data.pop_back();
-    }    
+    data.resize(data.size() - padLength);
 }
 
-vector<uchar> HighLevelCrypto::xorFirstWithSecond(vector<uchar>& a, vector<uchar>&  b) {
+vector<uchar> HighLevelCrypto::xorFirstWithSecond(const vector<uchar>& a, const vector<uchar>&  b) {
     ullong length = min(a.size(), b.size());
     vector<uchar> xored;
     xored.reserve(length);
@@ -143,8 +148,7 @@ vector<uchar> HighLevelCrypto::xorFirstWithSecond(vector<uchar>& a, vector<uchar
     return xored;
 }
 
-
-bool HighLevelCrypto::checkHashAtTheEnd(std::vector<uchar>& data) {
+bool HighLevelCrypto::checkHashAtTheEnd(const std::vector<uchar>& data) {
     vector<uchar> dataWithoutLast64bytes(data);
     dataWithoutLast64bytes.resize(data.size() - 64);
     
@@ -152,4 +156,8 @@ bool HighLevelCrypto::checkHashAtTheEnd(std::vector<uchar>& data) {
     vector<uchar> hashValue = hash.digest(dataWithoutLast64bytes);
     vector<uchar> expectedHashValue(data.end()-64, data.end());
     return hashValue == expectedHashValue;
+}
+
+string HighLevelCrypto::getPostfixForEncryptedFiles() {
+    return postfixForEncryptedFiles;
 }

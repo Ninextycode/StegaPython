@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(oneBlockMessage) {
         0x45, 0x4d, 0x44, 0x23, 0x64, 0x3c, 0xe8, 0x0e, 
         0x2a, 0x9a, 0xc9, 0x4f, 0xa5, 0x4c, 0xa4, 0x9f
     };
-    BOOST_WARN_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
             expectedHash.begin(), expectedHash.end());
 }
 
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(multiBlockMessage) {
         0xc7, 0xd3, 0x29, 0xee, 0xb6, 0xdd, 0x26, 0x54, 
         0x5e, 0x96, 0xe5, 0x5b, 0x87, 0x4b, 0xe9, 0x09
     };
-    BOOST_WARN_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
             expectedHash.begin(), expectedHash.end());
 }
 
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(longMessage) {
         0xeb, 0x00, 0x9c, 0x5c, 0x2c, 0x49, 0xaa, 0x2e, 
         0x4e, 0xad, 0xb2, 0x17, 0xad, 0x8c, 0xc0, 0x9b
     };
-    BOOST_WARN_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(hash.begin(), hash.end(),
             expectedHash.begin(), expectedHash.end());
 }
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(encryptOneBlock) {
         0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 
         0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89
     };
-    BOOST_WARN_EQUAL_COLLECTIONS(encrypted.begin(), encrypted.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(encrypted.begin(), encrypted.end(),
             expectedEncrypted.begin(), expectedEncrypted.end());
 }
 
@@ -114,12 +114,12 @@ BOOST_AUTO_TEST_CASE(decryptOneBlock) {
         0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
     };
     LowLevelCrypto sypherer;
-    vector<uchar> decrypted = sypherer.encryptAES(data, key); 
+    vector<uchar> decrypted = sypherer.decryptAES(data, key); 
     vector<uchar> expectedDecrypted {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
     };
-    BOOST_WARN_EQUAL_COLLECTIONS(decrypted.begin(), decrypted.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(decrypted.begin(), decrypted.end(),
             expectedDecrypted.begin(), expectedDecrypted.end());
 }
 
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(encryptAndDecryptCBC) {
     VectorSubroutines vs;
     string message = (string)"This is message to be encrypted. This is long enough" + 
             " to be divided to several 256 bit blocks.";
-    string password = "This is som stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
+    string password = "This is some stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
     vector<uchar> data = vs.vectorFromString(message);
     vector<uchar> passwordHash = vs.vectorFromString(password);
     
@@ -141,9 +141,38 @@ BOOST_AUTO_TEST_CASE(encryptAndDecryptCBC) {
     vector<uchar> encrypted = cypherer.encryptVectorByCipherBlockChaining(data, passwordHash, IV); 
     vector<uchar> decrypted = cypherer.decryptVectorByCipherBlockChaining(encrypted, passwordHash);
     
-    BOOST_WARN_EQUAL_COLLECTIONS(data.begin(), data.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(data.begin(), data.end(),
             decrypted.begin(), decrypted.end());
 }
+
+BOOST_AUTO_TEST_CASE(encryptAndDecryptFile) {
+    VectorSubroutines vs;
+    Filer f;
+    HighLevelCrypto cypherer;
+    string message = (string)"This is message to be encrypted. This is long enough" + 
+            " to be divided to several 256 bit blocks.";
+    string password = "This is some stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
+    string secret = "secret";
+    string encryptedSecret = secret + cypherer.getPostfixForEncryptedFiles();
+    cout << 1 << "\n";
+    vector<uchar> secretData = vs.vectorFromString(message);
+    f.writeFile(secretData, secret);
+    cout << 2 << "\n";   
+    cypherer.encryptFile(secret, password, "/");
+    cout << 3 << "\n";
+    remove(secret.data());
+    cout << 4 << "\n";
+    cypherer.decryptFile(encryptedSecret, password, "/");
+    cout << 5 << "\n";
+    vector<uchar> decryptedData = f.readFile(secret);
+    cout << 6 << "\n";
+    remove(secret.data());
+    remove(encryptedSecret.data());
+    
+    BOOST_CHECK_EQUAL_COLLECTIONS(secretData.begin(), secretData.end(),
+            decryptedData.begin(), decryptedData.end());
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -191,7 +220,7 @@ BOOST_AUTO_TEST_CASE(tempBasedSteganography) {
     remove(secret.data());
     remove(tempFileName.data());
     
-    BOOST_WARN_EQUAL_COLLECTIONS(dataToTemp.begin(), dataToTemp.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(dataToTemp.begin(), dataToTemp.end(),
             dataFromTemp.begin(), dataFromTemp.end());
 }
 
@@ -219,7 +248,7 @@ BOOST_AUTO_TEST_CASE(jpegSteganography) {
     remove(secret.data());
     remove(container.data());
     
-    BOOST_WARN_EQUAL_COLLECTIONS(dataToJpeg.begin(), dataToJpeg.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(dataToJpeg.begin(), dataToJpeg.end(),
             dataFromJpeg.begin(), dataFromJpeg.end());
 }
 
