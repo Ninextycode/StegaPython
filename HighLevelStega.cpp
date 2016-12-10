@@ -107,7 +107,7 @@ void HighLevelStega::decodeAndTakeFileFromTemp(std::string password, std::string
     f.writeEncodedFile(data, resultDir);
 };
 
-void HighLevelStega::encodeAndHideFileToJpgStructure(std::string password, std::string filename, std::string imagename) {
+void HighLevelStega::encodeAndHideFileInJpgStructure(std::string password, std::string filename, std::string imagename) {
     Filer f;
     vector<uchar> data = f.readAndEncodeFile(filename);
     HighLevelCrypto hcrypt;

@@ -83,7 +83,7 @@ namespace stcr {
 
         void encodeAndHideFielInTemp(std::string password, std::string filename);
         void decodeAndTakeFileFromTemp(std::string password, std::string resultDir);
-        void encodeAndHideFileToJpgStructure(std::string password, std::string filename, std::string imagename);
+        void encodeAndHideFileInJpgStructure(std::string password, std::string filename, std::string imagename);
         void decodeAndTakeFileFromJpgStructure(std::string password, std::string imagename, std::string resultDir);
         
         
