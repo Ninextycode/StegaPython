@@ -32,23 +32,12 @@ class Stegacrypto:
     def encode_and_hide_file_in_jpeg(self, password, file, container):
         self.stegaworker.hide_file_in_jpeg(password, file, container)
 
-    def decode_and_take_file_from_jpeg(self, container, output_dir):
-        self.stegaworker.take_file_from_jpeg(container, output_dir)
+    def decode_and_take_file_from_jpeg(self, password, container, output_dir):
+        self.stegaworker.take_file_from_jpeg(password, container, output_dir)
 
 
-    .def("encode_and_hide_file_in_jpeg", & HighLevelStega::encodeAndHideFileInJpgStructure,
-         args("password", "file", "container")
+    def encrypt_file(self, file, password, output_dir):
+        self.cryptoworker.encrypt_file(file, password, output_dir)
 
-    )
-    .def("decode_and_take_file_from_jpeg", & HighLevelStega::decodeAndTakeFileFromJpgStructure,
-         args("password", "container", "output_dir")
-
-    );
-
-    class_ < HighLevelCrypto > ("Crypto")
-    .def("encrypt_file", & HighLevelCrypto::encryptFile, args("file", "password", "output")
-
-    )
-    .def("decrypt_file", & HighLevelCrypto::decryptFile, args("file", "password", "output")
-
-    );
+    def decrypt_file(self, file, password, output_dir):
+        self.cryptoworker.decrypt_file(file, password, output_dir)

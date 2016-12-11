@@ -29,8 +29,8 @@ BOOST_PYTHON_MODULE( stega ) {
             args("password", "container", "output_dir"));
     
     class_<HighLevelCrypto>("Crypto")
-        .def("encrypt_file", &HighLevelCrypto::encryptFile, args("file", "password", "output"))
-        .def("decrypt_file", &HighLevelCrypto::decryptFile, args("file", "password", "output"));
+        .def("encrypt_file", &HighLevelCrypto::encryptFile, args("file", "password", "output_dir"))
+        .def("decrypt_file", &HighLevelCrypto::decryptFile, args("file", "password", "output_dir"));
     
 }; 
 
