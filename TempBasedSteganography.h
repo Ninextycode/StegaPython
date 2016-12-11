@@ -76,7 +76,7 @@ namespace stcr {
         
         void cleanJpegFile(std::string filename);
         
-        void hideFielInTemp(std::string filename);
+        void hideFileInTemp(std::string filename);
         void takeFileFromTemp(std::string resultDir);
         void hideFileInJpgStructure(std::string filename, std::string imagename);
         void takeFileFromJpgStructure( std::string imagename, std::string resultDir);

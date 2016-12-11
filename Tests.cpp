@@ -274,7 +274,7 @@ BOOST_AUTO_TEST_CASE(hidingFileInTemp) {
     
     vector<uchar> dataToHide = vs.vectorFromString(message);
     f.writeFile(dataToHide, secret);
-    hstega.hideFielInTemp(secret);
+    hstega.hideFileInTemp(secret);
     
     remove(secret.data());
     
@@ -296,20 +296,20 @@ BOOST_AUTO_TEST_CASE(hidingFileInJpeg) {
     string secret = "secret";
     string message = "Some not very long message to hide";
     string container = "container.jpeg";
-    
+
     vector<uchar> jpegFileData; //can be empty    
     f.writeFile(jpegFileData, container);
-    
+
     vector<uchar> dataToHide = vs.vectorFromString(message);
     f.writeFile(dataToHide, secret);
     hstega.hideFileInJpgStructure(secret, container);
-    
+
     remove(secret.data());
     
     hstega.takeFileFromJpgStructure(container, "");
-    
+
     vector<uchar> dataFromFileExtractedFromJpeg = f.readFile(secret);
-    
+
     remove(container.data());
     remove(secret.data());
         
@@ -358,7 +358,7 @@ BOOST_AUTO_TEST_CASE(encodingAndHidingFileInJpeg) {
     
     vector<uchar> dataToHide = vs.vectorFromString(message);
     f.writeFile(dataToHide, secret);
-    hstega.encodeAndHideFileToJpgStructure(password, secret, container);
+    hstega.encodeAndHideFileInJpgStructure(password, secret, container);
     
     remove(secret.data());
     

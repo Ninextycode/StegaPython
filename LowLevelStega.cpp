@@ -57,7 +57,7 @@ ullong LowLevelStega::startOfJpegTag(const vector<uchar>& container) {
         if(container[i-1] == firstByteTag && container[i] == secondByteTag) {
             return i-1;
         }
-    }
+    }    
     throw runtime_error("Cannot find required tag");
 }
 

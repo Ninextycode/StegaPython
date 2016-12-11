@@ -64,7 +64,7 @@ void HighLevelStega::cleanJpegFile(string filename) {
 }
 
 
-void HighLevelStega::hideFielInTemp(std::string filename) {
+void HighLevelStega::hideFileInTemp(std::string filename) {
     Filer f;
     vector<uchar> data = f.readAndEncodeFile(filename);
     hideVectorInTemp(data);
@@ -121,7 +121,6 @@ void HighLevelStega::decodeAndTakeFileFromJpgStructure(std::string password, std
     vector<uchar> encrypted = takeVectorFromJpgStructure(imagename);
     HighLevelCrypto hcrypt;
     vector<uchar> data = hcrypt.decryptVectorByCipherBlockChaining(encrypted, password);
-    
     f.writeEncodedFile(data, resultDir);
 };
 
