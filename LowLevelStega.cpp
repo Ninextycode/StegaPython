@@ -16,6 +16,7 @@ vector<uchar> LowLevelStega::takeVectorFromJpgVector(const vector<uchar>& contai
         ullong length = vs.getUllong(container, start);
         start += 8;
         secret.insert(secret.end(), container.begin() + start, container.begin() + start + length);
+
     } 
     return secret;
 }
