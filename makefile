@@ -1,4 +1,4 @@
-headers = sha512.h TempBasedSteganography.h
+headers = TempBasedSteganography.h
 
 sources = VectorSubroutines.cpp Filer.cpp Sha512.cpp\
     HighLevelCrypto.cpp LowLevelCrypto.cpp\
@@ -14,18 +14,18 @@ special_objects = main.o Tests.o
 
 CC = g++ -std=c++14 -fpic -g
 LINK_FLAGS = -shared -lboost_python 
-output = stega
-exec = stega
 
-all: tests $(exec)
+lib = python/stega.so
+
+all: tests $(lib)
 	
 
-$(exec): $(objects) main.o
-	$(CC) -o $(exec) $(objects) main.o
+$(lib): $(objects) main.o
+	$(CC) $(LINK_FLAGS) -o $(lib) $(objects) main.o
 
 tests: $(objects) Tests.o
 	$(CC) -o tests $(objects) Tests.o -lboost_unit_test_framework
-	./tests --log_level=test_suite
+	./tests
 	rm -f tests
 
 %.o: %.cpp
@@ -38,4 +38,4 @@ main.o: main.cpp TempBasedSteganography.h
 
 
 clean:
-	rm -f $(objects) $(output) $(special_objects)
+	rm -f $(objects) $(lib) $(special_objects)
