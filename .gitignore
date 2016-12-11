@@ -36,6 +36,10 @@ nbproject/*
 build/
 nbbuild/
 dist/
+
+#PyCharm
+.idea/*
+
 #containers
 *.jpg
 *.jpeg
