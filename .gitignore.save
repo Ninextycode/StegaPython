@@ -31,15 +31,18 @@
 *.out
 *.app
 
+
+
+
 #NetBeans
 nbproject/*
 build/
+
 nbbuild/
 dist/
 
 #PyCharm
 .idea/*
-*__pycache__/*
 
 #containers
 *.jpg
