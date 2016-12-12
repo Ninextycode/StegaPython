@@ -62,7 +62,7 @@ void Sha512::append1followedBy0(vector<uchar>& data, int nBytes) {
 
 void Sha512::unpad(vector<uchar>& data){
     //it is possible to extract only 64 bit int, not 128, as sha512 specification suggests
-    VectorSubroutines vs;
+    Subroutines vs;
     
     ullong desiredLength = vs.getUllong(data, data.size() - 8);
     desiredLength = desiredLength / 8;
@@ -71,7 +71,7 @@ void Sha512::unpad(vector<uchar>& data){
     data.erase(padBegin, data.end());
 }
 void Sha512::sizeToVector(vector<uchar>& data, ullong x){
-    VectorSubroutines vs;
+    Subroutines vs;
     
     //add 8 empty bits, because according to sha512 specification, size should occupy 128, not 64(ullong length) bits
     for(int i = 0; i < 8; i++) {
@@ -88,7 +88,7 @@ void Sha512::digestBlock(std::vector<uchar>& data, int numberOfBlock){
 }
 
 void Sha512::prepareMessageSchedule(std::vector<uchar>& data, int numberOfBlock){
-    VectorSubroutines vs;
+    Subroutines vs;
     
     ullong blockStartIndex = numberOfBlock * 16 * 8;
     

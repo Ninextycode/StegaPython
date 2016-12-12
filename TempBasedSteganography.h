@@ -12,7 +12,7 @@ typedef unsigned int  uint;
 typedef unsigned long long  ullong;
 
 namespace stcr {
-    class VectorSubroutines {
+    class Subroutines {
         
     public:
         std::vector<uchar> vectorFromString(std::string s);
@@ -22,6 +22,7 @@ namespace stcr {
         
         void appendUint(std::vector<uchar>& data, uint x);
         uint getUint(const std::vector<uchar>& data, ullong position);
+        std::string getNameFromPath(std::string path);
     };
 
     class Filer {
@@ -33,9 +34,7 @@ namespace stcr {
         ullong getFileLength(std::string pathToFile);
     private:
         ullong encodedFileLength(const std::vector<uchar>& data);
-        std::string extractFileNameFromVector(const std::vector<uchar>& data);
-        
-        std::string getProperFileName(std::string pathToFile);       
+        std::string extractFileNameFromVector(const std::vector<uchar>& data);  
         
         void writeFileNameToVector(std::vector<uchar>& data, std::string filename);
         void writeLengthToVector(std::vector<uchar>& data, ullong length);

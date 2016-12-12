@@ -1,15 +1,17 @@
 #include "TempBasedSteganography.h"
+
 using namespace stcr;
 using namespace std;
 
 void HighLevelCrypto::encryptFile(std::string filename, std::string password, std::string resultDir) {
     Filer filer;    
-    
     vector<uchar> file = filer.readAndEncodeFile(filename);
-    
     vector<uchar> encryptedFile = encryptVectorByCipherBlockChaining(file, password);
+    
+    Subroutines s;
+    string name = s.getNameFromPath(filename);
 
-    filer.writeFile(encryptedFile, resultDir+filename+postfixForEncryptedFiles); 
+    filer.writeFile(encryptedFile, resultDir+name+postfixForEncryptedFiles); 
 }
 
 void HighLevelCrypto::decryptFile(string filename, string password, string resultDir) {
@@ -18,7 +20,6 @@ void HighLevelCrypto::decryptFile(string filename, string password, string resul
 
     vector<uchar> file = filer.readFile(filename);
     vector<uchar> decryptedFile = decryptVectorByCipherBlockChaining(file, password);
-    
     filer.writeEncodedFile(decryptedFile, resultDir);
 }
 
@@ -26,7 +27,7 @@ void HighLevelCrypto::decryptFile(string filename, string password, string resul
 vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uchar>& data, 
         const std::string password) {
     Sha512 hash;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> passwordVector = vs.vectorFromString(password);
     vector<uchar> passwordHash = hash.digest(passwordVector);
     
@@ -42,7 +43,7 @@ vector<uchar> HighLevelCrypto::encryptVectorByCipherBlockChaining(std::vector<uc
 vector<uchar> HighLevelCrypto::decryptVectorByCipherBlockChaining(const std::vector<uchar>& data, 
         const std::string password) {
     Sha512 hash;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> passwordVector = vs.vectorFromString(password);
     vector<uchar> passwordHash = hash.digest(passwordVector);
     

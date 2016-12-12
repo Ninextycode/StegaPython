@@ -3,6 +3,7 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE Tests
 #include <boost/test/unit_test.hpp>
+ 
 
 #include <cstdio> //removing files
 
@@ -10,7 +11,7 @@ using namespace std;
 using namespace stcr;
 
 void createTemp() {
-    VectorSubroutines vs;
+    Subroutines vs;
     HighLevelStega hstega;
     string tempFileName = hstega.getTempFileName();
      
@@ -37,7 +38,7 @@ BOOST_AUTO_TEST_SUITE(Cryptography)
 BOOST_AUTO_TEST_SUITE(Sha512Test)
 
 BOOST_AUTO_TEST_CASE(oneBlockMessage) {
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> data = vs.vectorFromString("abc");
     Sha512 hasher;
     vector<uchar> hash = hasher.digest(data); 
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(oneBlockMessage) {
 }
 
 BOOST_AUTO_TEST_CASE(multiBlockMessage) {
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> data = vs.vectorFromString(
             (string)"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn" +
            "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu");
@@ -77,7 +78,7 @@ BOOST_AUTO_TEST_CASE(multiBlockMessage) {
 }
 
 BOOST_AUTO_TEST_CASE(longMessage) {
-    VectorSubroutines vs;
+    Subroutines vs;
     string s = "";
     for(int i = 0; i < 1000000; i++) {
         s += "a";
@@ -147,7 +148,7 @@ BOOST_AUTO_TEST_CASE(decryptOneBlock) {
 }
 
 BOOST_AUTO_TEST_CASE(encryptAndDecryptCBC) {
-    VectorSubroutines vs;
+    Subroutines vs;
     string message = (string)"This is message to be encrypted. This is long enough" + 
             " to be divided to several 256 bit blocks.";
     string password = "This is some stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
@@ -169,27 +170,30 @@ BOOST_AUTO_TEST_CASE(encryptAndDecryptCBC) {
 }
 
 BOOST_AUTO_TEST_CASE(encryptAndDecryptFile) {
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
     HighLevelCrypto cypherer;
     string message = (string)"This is message to be encrypted. This is long enough" + 
             " to be divided to several 256 bit blocks.";
     string password = "This is some stupid random password. It's hash will be used to make 16 byte IV and 32 byte key.";
-    string secret = "secret";
-    string encryptedSecret = secret + cypherer.getPostfixForEncryptedFiles();
-
+    string secret = "input_test/secret";
+    string encryptedSecret = "output_test/secret" + cypherer.getPostfixForEncryptedFiles();
+    string restoredSecret = "output_test/secret";
+    
     vector<uchar> secretData = vs.vectorFromString(message);
 
     f.writeFile(secretData, secret);
  
-    cypherer.encryptFile(secret, password, "");
+    cypherer.encryptFile(secret, password, "output_test/");
+
     remove(secret.data());
-    cypherer.decryptFile(encryptedSecret, password, "");
+    cypherer.decryptFile(encryptedSecret, password, "output_test/");
 
-    vector<uchar> decryptedData = f.readFile(secret);
-
+    
+    vector<uchar> decryptedData = f.readFile(restoredSecret);
     remove(secret.data());
     remove(encryptedSecret.data());
+    remove(restoredSecret.data());
     
     BOOST_CHECK_EQUAL_COLLECTIONS(secretData.begin(), secretData.end(),
             decryptedData.begin(), decryptedData.end());
@@ -205,7 +209,7 @@ BOOST_AUTO_TEST_SUITE(Steganograpyh)
 
 BOOST_AUTO_TEST_CASE(hidingVectorInTemp) {
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
     string secret = "secret";
     string message = "Some not very long message to hide";
@@ -233,7 +237,7 @@ BOOST_AUTO_TEST_CASE(hidingVectorInTemp) {
 
 BOOST_AUTO_TEST_CASE(hidingVectorInJpeg) {
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     string container = "container.jpeg";
     string secret = "secret";
     Filer f;
@@ -263,10 +267,13 @@ BOOST_AUTO_TEST_CASE(hidingVectorInJpeg) {
 }
 
 BOOST_AUTO_TEST_CASE(hidingFileInTemp) {
+     
+            
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
-    string secret = "secret";
+    string secret = "input_test/secret";
+    string restored_secret = "output_test/secret";
     string message = "Some not very long message to hide";
     string tempFileName = hstega.getTempFileName();
 
@@ -278,22 +285,28 @@ BOOST_AUTO_TEST_CASE(hidingFileInTemp) {
     
     remove(secret.data());
     
-    hstega.takeFileFromTemp("");
+    hstega.takeFileFromTemp("output_test/");
     
-    vector<uchar> dataFromFileExtractedFromTemp = f.readFile(secret);
+    vector<uchar> dataFromFileExtractedFromTemp = f.readFile(restored_secret);
     
     remove(tempFileName.data());
-    remove(secret.data());
-        
+    remove(restored_secret.data());
+    
+    
+            
     BOOST_CHECK_EQUAL_COLLECTIONS(dataToHide.begin(), dataToHide.end(),
             dataFromFileExtractedFromTemp.begin(), dataFromFileExtractedFromTemp.end());
 }
 
 BOOST_AUTO_TEST_CASE(hidingFileInJpeg) {
+     
+           
+    
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
-    string secret = "secret";
+    string secret = "input_test/secret";
+    string restored_secret = "output_test/secret";
     string message = "Some not very long message to hide";
     string container = "container.jpeg";
 
@@ -306,22 +319,26 @@ BOOST_AUTO_TEST_CASE(hidingFileInJpeg) {
 
     remove(secret.data());
     
-    hstega.takeFileFromJpgStructure(container, "");
+    hstega.takeFileFromJpgStructure(container, "output_test/");
 
-    vector<uchar> dataFromFileExtractedFromJpeg = f.readFile(secret);
+    vector<uchar> dataFromFileExtractedFromJpeg = f.readFile(restored_secret);
 
     remove(container.data());
-    remove(secret.data());
-        
+    remove(restored_secret.data());
+    
+    
     BOOST_CHECK_EQUAL_COLLECTIONS(dataToHide.begin(), dataToHide.end(),
             dataFromFileExtractedFromJpeg.begin(), dataFromFileExtractedFromJpeg.end());
 }
 
 BOOST_AUTO_TEST_CASE(encodingAndHidingFileInTemp) {
+     
+       
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
-    string secret = "secret";
+    string secret = "input_test/secret";
+    string restored_secret = "output_test/secret";
     string message = "Some not very long message to hide";
     string tempFileName = hstega.getTempFileName();
     string password = "password123456";
@@ -333,22 +350,27 @@ BOOST_AUTO_TEST_CASE(encodingAndHidingFileInTemp) {
     
     remove(secret.data());
     
-    hstega.decodeAndTakeFileFromTemp(password, "");
+    hstega.decodeAndTakeFileFromTemp(password, "output_test/");
     
-    vector<uchar> dataFromFileExtractedFromTemp = f.readFile(secret);
+    vector<uchar> dataFromFileExtractedFromTemp = f.readFile(restored_secret);
     
     remove(tempFileName.data());
-    remove(secret.data());
-        
+    remove(restored_secret.data());
+    
+       
     BOOST_CHECK_EQUAL_COLLECTIONS(dataToHide.begin(), dataToHide.end(),
             dataFromFileExtractedFromTemp.begin(), dataFromFileExtractedFromTemp.end());
 }
 
 BOOST_AUTO_TEST_CASE(encodingAndHidingFileInJpeg) {
+     
+      
+    
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     Filer f;
-    string secret = "secret";
+    string secret = "input_test/secret";
+    string restored_secret = "output_test/secret";
     string message = "Some not very long message to hide";
     string password = "password123456";
     string container = "container.jpeg";
@@ -362,13 +384,14 @@ BOOST_AUTO_TEST_CASE(encodingAndHidingFileInJpeg) {
     
     remove(secret.data());
     
-    hstega.decodeAndTakeFileFromJpgStructure(password, container, "");
+    hstega.decodeAndTakeFileFromJpgStructure(password, container, "output_test/");
     
-    vector<uchar> dataFromFileExtractedFromJpeg = f.readFile(secret);
+    vector<uchar> dataFromFileExtractedFromJpeg = f.readFile(restored_secret);
     
     remove(container.data());
-    remove(secret.data());
-        
+    remove(restored_secret.data());
+    
+         
     BOOST_CHECK_EQUAL_COLLECTIONS(dataToHide.begin(), dataToHide.end(),
             dataFromFileExtractedFromJpeg.begin(), dataFromFileExtractedFromJpeg.end());
 }
@@ -377,19 +400,22 @@ BOOST_AUTO_TEST_CASE(encodingAndHidingFileInJpeg) {
 BOOST_AUTO_TEST_CASE(removingFromJpeg) {
     Filer f;
     HighLevelStega hstega;
-    VectorSubroutines vs;
+    Subroutines vs;
     string message = "Some not very long message to hide";
     string container = "container.jpeg";
     
-    vector<uchar> jpegFileData; //can be empty    
+    vector<uchar> jpegFileData = {0x00, 0x01, 0x02}; //can be empty    
     f.writeFile(jpegFileData, container);
     
     int initialFileSize = f.getFileLength(container);
     vector<uchar> dataToHide = vs.vectorFromString(message);
     hstega.hideVectorInJpgStructure(dataToHide, container);
     hstega.cleanJpegFile(container);
-    
+
     int cleanedFileSize = f.getFileLength(container);
+    
+    remove(container.data());
+    
     BOOST_CHECK_EQUAL(initialFileSize, cleanedFileSize);
 }
 BOOST_AUTO_TEST_SUITE_END()

@@ -5,7 +5,7 @@ using namespace std;
 
 void HighLevelStega::hideVectorInTemp(const vector<uchar>& data) {
     Filer f;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> tempData = f.readFile(tempFileName);
     
     uint width = vs.getUint(tempData, 0);    
@@ -24,7 +24,7 @@ void HighLevelStega::hideVectorInTemp(const vector<uchar>& data) {
 
 vector<uchar> HighLevelStega::takeVectorFromTemp() {
     Filer f;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> tempData = f.readFile(tempFileName);
     
     uint width = vs.getUint(tempData, 0);    
@@ -93,7 +93,7 @@ void HighLevelStega::encodeAndHideFielInTemp(std::string password, std::string f
     Filer f;
     vector<uchar> data = f.readAndEncodeFile(filename);
     HighLevelCrypto hcrypt;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> encrypted = hcrypt.encryptVectorByCipherBlockChaining(data, password);
     hideVectorInTemp(encrypted);
 };
@@ -111,7 +111,7 @@ void HighLevelStega::encodeAndHideFileInJpgStructure(std::string password, std::
     Filer f;
     vector<uchar> data = f.readAndEncodeFile(filename);
     HighLevelCrypto hcrypt;
-    VectorSubroutines vs;
+    Subroutines vs;
     vector<uchar> encrypted = hcrypt.encryptVectorByCipherBlockChaining(data, password);
     hideVectorInJpgStructure(encrypted, imagename);
 };

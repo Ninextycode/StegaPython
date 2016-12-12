@@ -12,7 +12,7 @@ vector<uchar> LowLevelStega::takeVectorFromJpgVector(const vector<uchar>& contai
     } else {
         ullong start = startOfJpegTag(container);
         start += 2;
-        VectorSubroutines vs;
+        Subroutines vs;
         ullong length = vs.getUllong(container, start);
         start += 8;
         secret.insert(secret.end(), container.begin() + start, container.begin() + start + length);
@@ -28,7 +28,7 @@ void LowLevelStega::hideVectorInJpgVector(vector<uchar>& container, const vector
     container.reserve(container.size() + 2 + 8 + secret.size()); //2 for tag 8 for length
     container.push_back(firstByteTag);
     container.push_back(secondByteTag);
-    VectorSubroutines vs;
+    Subroutines vs;
     vs.appendUllong(container, secret.size());
     container.insert(container.end(), secret.begin(), secret.end());
     
@@ -37,7 +37,7 @@ void LowLevelStega::hideVectorInJpgVector(vector<uchar>& container, const vector
 void LowLevelStega::eraseJpegTagData(vector<uchar>& container) {
     if(vectorContainsJpegTag(container)) {
         ullong startOfTag = startOfJpegTag(container);
-        VectorSubroutines vs;
+        Subroutines vs;
         ullong length = vs.getUllong(container, startOfTag + 2);
         ullong endOfTag = startOfTag + 2 + 8 + length;
         container.erase(container.begin() + startOfTag, container.begin() + endOfTag);
@@ -64,10 +64,10 @@ ullong LowLevelStega::startOfJpegTag(const vector<uchar>& container) {
 
 void LowLevelStega::keylessLSB(vector<uchar>& container, const vector<uchar>& secret, ullong start, ullong end) {
     ullong availableContainerSize = end - start;
-    if(secret.size() * 8 > availableContainerSize) {
+    if(availableContainerSize < secret.size() * 8) {
         throw runtime_error("Too small container");
     } 
-    
+
     int constainerIndex = start;
     for(int i = 0; i < secret.size(); i++) {
         write8LSB(container[constainerIndex], container[constainerIndex+1],

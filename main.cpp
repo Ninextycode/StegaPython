@@ -26,11 +26,13 @@ BOOST_PYTHON_MODULE( stega ) {
         .def("encode_and_hide_file_in_jpeg", &HighLevelStega::encodeAndHideFileInJpgStructure,
             args("password", "file", "container"))
         .def("decode_and_take_file_from_jpeg", &HighLevelStega::decodeAndTakeFileFromJpgStructure,
-            args("password", "container", "output_dir"));
-    
+            args("password", "container", "output_dir"))
+        .add_property("temp_filename", &HighLevelStega::getTempFileName);
+                
     class_<HighLevelCrypto>("Crypto")
         .def("encrypt_file", &HighLevelCrypto::encryptFile, args("file", "password", "output_dir"))
-        .def("decrypt_file", &HighLevelCrypto::decryptFile, args("file", "password", "output_dir"));
+        .def("decrypt_file", &HighLevelCrypto::decryptFile, args("file", "password", "output_dir"))
+        .add_property("postfix_for_encrypted_files", &HighLevelCrypto::getPostfixForEncryptedFiles);
     
 }; 
 

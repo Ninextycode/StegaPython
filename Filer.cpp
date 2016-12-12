@@ -11,7 +11,9 @@ vector<uchar> Filer::readFile(string pathToFile) {
 vector<uchar> Filer::readAndEncodeFile(string pathToFile) {     
     vector<uchar> data;
     
-    string filename = getProperFileName(pathToFile);
+    Subroutines s;
+    string filename = s.getNameFromPath(pathToFile);
+    
     writeFileNameToVector(data, filename);
     
     ullong fileLength = getFileLength(pathToFile);
@@ -22,15 +24,6 @@ vector<uchar> Filer::readAndEncodeFile(string pathToFile) {
     Sha512 hash;
     hash.appendHashToVector(data);
     return data;
-}
-
-string Filer::getProperFileName(string pathToFile){
-    string clearFilename;
-	int i = pathToFile.length() - 1;
-	while (i >= 0 && pathToFile.at(i) != '\\') {
-		clearFilename = pathToFile.at(i--) + clearFilename;
-	}
-    return clearFilename;
 }
 
 ullong Filer::getFileLength(string pathToFile) {
@@ -79,7 +72,7 @@ void Filer::writeFile(const vector<uchar>& data, string pathToFile) {
 }
 
 void Filer::writeEncodedFile(vector<uchar>& data, string directory) {
-    VectorSubroutines vs;
+    Subroutines vs;
     Sha512 hash;
 
     ullong length = encodedFileLength(data) + 64; //64 is length of hash signature
@@ -99,7 +92,7 @@ void Filer::writeEncodedFile(vector<uchar>& data, string directory) {
     
     int index = 1 + filenameSize + 8; //1 for filename length  length of filename + 8 for file data length
     int startOfFileData = index;
-    
+
 	ofstream out(directory + filename, ios::binary);
 	while (index < fileSize + startOfFileData){
         out << data[index++];
@@ -108,7 +101,7 @@ void Filer::writeEncodedFile(vector<uchar>& data, string directory) {
 }
 
 ullong Filer::encodedFileLength(const std::vector<uchar>& data) {
-    VectorSubroutines vs;
+    Subroutines vs;
     uchar filenameSize = data[0];    
     ullong filenameEnd = 1 + filenameSize;
 	ullong fileSize = vs.getUllong(data, filenameEnd);
