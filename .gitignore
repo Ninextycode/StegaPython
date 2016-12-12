@@ -50,4 +50,4 @@ dist/
 .nb-gradle/
 
 #Something from dolphin(aka kde explorer)
-*/.directory
+.directory
