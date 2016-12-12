@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter.filedialog import askopenfilename, askdirectory
 import tkinter.messagebox as tkMessageBox
-from python.stega_w import Stegacrypto
+from stega_w import Stegacrypto
 
 
 mods = ["plain crypto", "jpeg stega", "png/bmp stega"]
