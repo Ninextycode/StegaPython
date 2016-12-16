@@ -13,7 +13,7 @@ special_objects = main.o Tests.o
 
 
 CC = g++ -std=c++14 -fpic
-LINK_FLAGS = -shared -lboost_python3
+LINK_FLAGS = -shared -lboost_python
 
 lib = python/stega.so
 
