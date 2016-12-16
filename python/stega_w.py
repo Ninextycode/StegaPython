@@ -117,7 +117,7 @@ class Stegacrypto:
 
     def unsafe_encode_and_hide_file_in_bmppng(self, password, container, file, output_dir):
         container = self.create_new_container(container, output_dir)
-        selfboo.create_temp_from_image(container)
+        self.create_temp_from_image(container)
         try:
             self.stegaworker.encode_and_hide_file_in_temp(password, file)
         except Exception as e:

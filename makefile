@@ -13,7 +13,7 @@ special_objects = main.o Tests.o
 
 
 CC = g++ -std=c++14 -fpic
-LINK_FLAGS = -shared -lboost_python
+LINK_FLAGS = -shared -lboost_python3
 
 lib = python/stega.so
 
@@ -34,7 +34,7 @@ tests: $(objects) Tests.o
 
 	
 main.o: main.cpp TempBasedSteganography.h
-	$(CC) -c -I/usr/include/python3.4 main.cpp
+	$(CC) -c -I/usr/include/python3.5 main.cpp
 	
 
 

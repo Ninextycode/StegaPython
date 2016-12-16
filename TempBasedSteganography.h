@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <stdexcept> 
 #include <iterator> 
-
+#include <vector>
 
 typedef unsigned char uchar;
 typedef unsigned int  uint;
